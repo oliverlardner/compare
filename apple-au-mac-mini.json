@@ -1,0 +1,235 @@
+{
+  "source": "https://www.apple.com/au/shop/buy-mac/mac",
+  "currency": "AUD",
+  "fetchedAt": "2026-04-11",
+  "variants": [
+    {
+      "chip": "M4",
+      "variant": "m4-10-10",
+      "label": "Mac mini · M4 · 10-core CPU · 10-core GPU",
+      "basePriceAud": 999,
+      "wattsEstimate": 55,
+      "realWorldNote": "Owner report: 16GB pushed into swap with any other app open. 24GB minimum recommended for practical local AI use.",
+      "memoryOptions": [
+        { "label": "16GB", "delta": 0, "realWorldNote": "macOS uses ~6GB; leaves ~10GB for models. Any other open app causes swap. Not recommended for local AI." },
+        { "label": "24GB", "delta": 300 },
+        { "label": "32GB", "delta": 600 }
+      ],
+      "storageOptions": [
+        { "label": "256GB", "delta": 0 },
+        { "label": "512GB", "delta": 300 },
+        { "label": "1TB", "delta": 600 },
+        { "label": "2TB", "delta": 1200 }
+      ],
+      "ethernetOptions": [
+        { "label": "Gigabit", "delta": 0 },
+        { "label": "10 Gigabit", "delta": 150 }
+      ]
+    },
+    {
+      "chip": "M4 Pro",
+      "variant": "m4pro-12-16",
+      "label": "Mac mini · M4 Pro · 12-core CPU · 16-core GPU",
+      "basePriceAud": 2199,
+      "wattsEstimate": 75,
+      "memoryOptions": [
+        { "label": "24GB", "delta": 0 },
+        { "label": "48GB", "delta": 600 },
+        { "label": "64GB", "delta": 900 }
+      ],
+      "storageOptions": [
+        { "label": "512GB", "delta": 0 },
+        { "label": "1TB", "delta": 300 },
+        { "label": "2TB", "delta": 900 },
+        { "label": "4TB", "delta": 1800 },
+        { "label": "8TB", "delta": 3600 }
+      ],
+      "ethernetOptions": [
+        { "label": "Gigabit", "delta": 0 },
+        { "label": "10 Gigabit", "delta": 150 }
+      ]
+    },
+    {
+      "chip": "M4 Pro",
+      "variant": "m4pro-14-20",
+      "label": "Mac mini · M4 Pro · 14-core CPU · 20-core GPU",
+      "basePriceAud": 3099,
+      "wattsEstimate": 85,
+      "memoryOptions": [
+        { "label": "48GB", "delta": 0 },
+        { "label": "64GB", "delta": 300 }
+      ],
+      "storageOptions": [
+        { "label": "512GB", "delta": 0 },
+        { "label": "1TB", "delta": 300 },
+        { "label": "2TB", "delta": 900 },
+        { "label": "4TB", "delta": 1800 },
+        { "label": "8TB", "delta": 3600 }
+      ],
+      "ethernetOptions": [
+        { "label": "Gigabit", "delta": 0 },
+        { "label": "10 Gigabit", "delta": 150 }
+      ]
+    },
+    {
+      "chip": "M4 Max",
+      "variant": "m4max-14-32",
+      "label": "Mac Studio · M4 Max · 14-core CPU · 32-core GPU",
+      "basePriceAud": 3499,
+      "wattsEstimate": 140,
+      "memoryOptions": [{ "label": "36GB", "delta": 0 }],
+      "storageOptions": [
+        { "label": "512GB", "delta": 0 },
+        { "label": "1TB", "delta": 300 },
+        { "label": "2TB", "delta": 900 },
+        { "label": "4TB", "delta": 1800 },
+        { "label": "8TB", "delta": 3600 }
+      ],
+      "ethernetOptions": [{ "label": "10 Gigabit", "delta": 0 }]
+    },
+    {
+      "chip": "M4 Max",
+      "variant": "m4max-16-40",
+      "label": "Mac Studio · M4 Max · 16-core CPU · 40-core GPU",
+      "basePriceAud": 4249,
+      "wattsEstimate": 160,
+      "memoryOptions": [
+        { "label": "48GB", "delta": 0 },
+        { "label": "64GB", "delta": 300 },
+        { "label": "128GB", "delta": 1500 }
+      ],
+      "storageOptions": [
+        { "label": "512GB", "delta": 0 },
+        { "label": "1TB", "delta": 300 },
+        { "label": "2TB", "delta": 900 },
+        { "label": "4TB", "delta": 1800 },
+        { "label": "8TB", "delta": 3600 }
+      ],
+      "ethernetOptions": [{ "label": "10 Gigabit", "delta": 0 }]
+    },
+    {
+      "chip": "M3 Ultra",
+      "variant": "m3ultra-28-60",
+      "label": "Mac Studio · M3 Ultra · 28-core CPU · 60-core GPU",
+      "basePriceAud": 6999,
+      "wattsEstimate": 220,
+      "memoryOptions": [
+        { "label": "96GB", "delta": 0 },
+        { "label": "256GB", "delta": 3000 },
+        { "label": "512GB", "delta": 9000 }
+      ],
+      "storageOptions": [
+        { "label": "1TB", "delta": 0 },
+        { "label": "2TB", "delta": 600 },
+        { "label": "4TB", "delta": 1500 },
+        { "label": "8TB", "delta": 3300 },
+        { "label": "16TB", "delta": 6900 }
+      ],
+      "ethernetOptions": [{ "label": "10 Gigabit", "delta": 0 }]
+    },
+    {
+      "chip": "M3 Ultra",
+      "variant": "m3ultra-32-80",
+      "label": "Mac Studio · M3 Ultra · 32-core CPU · 80-core GPU",
+      "basePriceAud": 9249,
+      "wattsEstimate": 260,
+      "memoryOptions": [
+        { "label": "96GB", "delta": 0 },
+        { "label": "256GB", "delta": 3000 },
+        { "label": "512GB", "delta": 9000 }
+      ],
+      "storageOptions": [
+        { "label": "1TB", "delta": 0 },
+        { "label": "2TB", "delta": 600 },
+        { "label": "4TB", "delta": 1500 },
+        { "label": "8TB", "delta": 3300 },
+        { "label": "16TB", "delta": 6900 }
+      ],
+      "ethernetOptions": [{ "label": "10 Gigabit", "delta": 0 }]
+    },
+    {
+      "chip": "M5",
+      "variant": "m5-10-10",
+      "label": "MacBook Pro 14\" · M5 · 10-core CPU · 10-core GPU",
+      "basePriceAud": 2699,
+      "wattsEstimate": 22,
+      "realWorldNote": "Laptop thermal limits cap sustained inference power. 16GB is tight for AI; 24GB recommended minimum. Much lower power draw than Mac mini/Studio.",
+      "memoryOptions": [
+        { "label": "16GB", "delta": 0, "realWorldNote": "macOS uses ~6GB; leaves ~10GB for models. Only sub-8B models run comfortably. Not recommended for local AI." },
+        { "label": "24GB", "delta": 300 },
+        { "label": "32GB", "delta": 600 }
+      ],
+      "storageOptions": [
+        { "label": "1TB", "delta": 0 },
+        { "label": "2TB", "delta": 300 },
+        { "label": "4TB", "delta": 900 }
+      ],
+      "ethernetOptions": [
+        { "label": "Built-in", "delta": 0 }
+      ]
+    },
+    {
+      "chip": "M5 Pro",
+      "variant": "m5pro-15-16",
+      "label": "MacBook Pro 14\" · M5 Pro · 15-core CPU · 16-core GPU",
+      "basePriceAud": 3499,
+      "wattsEstimate": 35,
+      "realWorldNote": "Laptop thermal limits; sustained LLM inference draws ~30–40W. Prices are approximate — verify at apple.com/au.",
+      "memoryOptions": [
+        { "label": "24GB", "delta": 0 },
+        { "label": "48GB", "delta": 600 },
+        { "label": "64GB", "delta": 900 }
+      ],
+      "storageOptions": [
+        { "label": "1TB", "delta": 0 },
+        { "label": "2TB", "delta": 300 },
+        { "label": "4TB", "delta": 900 }
+      ],
+      "ethernetOptions": [
+        { "label": "Built-in", "delta": 0 }
+      ]
+    },
+    {
+      "chip": "M5 Max",
+      "variant": "m5max-18-32",
+      "label": "MacBook Pro 14\" · M5 Max · 18-core CPU · 32-core GPU",
+      "basePriceAud": 5799,
+      "wattsEstimate": 50,
+      "realWorldNote": "14-inch M5 Max base config. Prices approximate — verify at apple.com/au. Memory upgrades require CTO; 128GB not available on 32-core GPU.",
+      "memoryOptions": [
+        { "label": "36GB", "delta": 0 },
+        { "label": "48GB", "delta": 300 },
+        { "label": "64GB", "delta": 600 }
+      ],
+      "storageOptions": [
+        { "label": "2TB", "delta": 0 },
+        { "label": "4TB", "delta": 1000 },
+        { "label": "8TB", "delta": 2000 }
+      ],
+      "ethernetOptions": [
+        { "label": "Built-in", "delta": 0 }
+      ]
+    },
+    {
+      "chip": "M5 Max",
+      "variant": "m5max-18-40",
+      "label": "MacBook Pro 16\" · M5 Max · 18-core CPU · 40-core GPU",
+      "basePriceAud": 6999,
+      "wattsEstimate": 60,
+      "realWorldNote": "16-inch M5 Max base config (48GB, 2TB). Only the 40-core GPU config supports 128GB. Prices approximate — verify at apple.com/au.",
+      "memoryOptions": [
+        { "label": "48GB", "delta": 0 },
+        { "label": "64GB", "delta": 300 },
+        { "label": "128GB", "delta": 1000 }
+      ],
+      "storageOptions": [
+        { "label": "2TB", "delta": 0 },
+        { "label": "4TB", "delta": 1000 },
+        { "label": "8TB", "delta": 2000 }
+      ],
+      "ethernetOptions": [
+        { "label": "Built-in", "delta": 0 }
+      ]
+    }
+  ]
+}

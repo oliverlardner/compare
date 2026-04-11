@@ -1,0 +1,889 @@
+{
+  "methodology": "Smaller models: Mac Studio M4 Max / M3 Ultra tok/s are aligned to published MLX Q4 bands where available; Mac mini tiers are scaled heuristically. Large / frontier models (200B+, MoE, Kimi-class) use conservative placeholder tok/s and RAM gates — validate on your exact quant, context, and runtime; many are run sharded across multiple Macs in practice.",
+  "sources": [
+    {
+      "title": "InsiderLLM — M4 Max and M3 Ultra for Local LLMs (MLX Q4 tables)",
+      "url": "https://insiderllm.com/guides/m4-max-ultra-local-llms-apple-silicon/",
+      "note": "Llama 8B, Qwen3 14B/32B, Llama 3.3 70B tok/s bands on Mac Studio; M3 Ultra vs M4 Max bandwidth discussion"
+    },
+    {
+      "title": "famstack — MLX vs GGUF on Apple Silicon",
+      "url": "https://famstack.dev/guides/mlx-vs-gguf-apple-silicon/",
+      "note": "Why advertised tok/s can differ from sustained interactive use"
+    },
+    {
+      "title": "Rick's Blog — Benchmark LLM on Apple Silicon",
+      "url": "https://ricklan.net/blog/2025/03/benchmark-llm-on-apple-silicon/",
+      "note": "Additional MLX vs GGUF samples on Apple hardware"
+    },
+    {
+      "title": "Virge.io — exo distributed inference on Mac clusters",
+      "url": "https://www.virge.io/en/blog/exo-mac-studio-cluster-llm/",
+      "note": "Large models (e.g. DeepSeek V3, Qwen3-235B, Kimi) on multi-Mac setups — aggregate tok/s examples"
+    },
+    {
+      "title": "Chatbot Arena (LMSys) — community Elo leaderboard",
+      "url": "https://lmarena.ai/",
+      "note": "Used as primary source for arena sub-score in usefulness composite"
+    },
+    {
+      "title": "HumanEval / LiveCodeBench — coding benchmark aggregates",
+      "url": "https://livecodebench.github.io/",
+      "note": "Coding sub-score derived from relative ranking on multi-round coding evals"
+    },
+    {
+      "title": "Hacker News / oMLX — Qwen3-30B-A3B on M4 Max (~70-100 tok/s) and M4 Pro 16c (~89 tok/s TG)",
+      "url": "https://news.ycombinator.com/item?id=44635589",
+      "note": "Qwen3 MoE throughput on Apple Silicon; MoE active-param efficiency means high tok/s despite large total params"
+    },
+    {
+      "title": "Medium / Rif Kiamil — Gemma 3 27B on Mac Studio M3 Ultra (33 tok/s LM Studio MLX)",
+      "url": "https://building.theatlantic.com/gemma-3-performance-tokens-per-second-in-lm-studio-vs-ollama-mac-studio-m3-ultra-7e1af75438e4",
+      "note": "Gemma 3 27B tok/s on M3 Ultra and M4 Max; MLX vs Ollama comparison"
+    },
+    {
+      "title": "InsiderLLM — Llama 4 Scout/Maverick local setup and memory requirements",
+      "url": "https://insiderllm.com/guides/llama-4-guide-scout-maverick/",
+      "note": "Llama 4 Scout 109B MoE Q4 requires ~61GB unified RAM; active params only 17B"
+    },
+    {
+      "title": "apxml.com — Kimi K2.5 specifications",
+      "url": "http://apxml.com/models/kimi-k25",
+      "note": "Kimi K2.5: 1T total MoE, 32B active, ~620GB Q4 — cluster-only for practical use"
+    }
+  ],
+  "localModelProfiles": [
+    {
+      "key": "phi4-14b-q4",
+      "label": "Phi-4 14B · Q4",
+      "memoryRequiredGb": 9,
+      "throughput": {
+        "m4-10-10": 38,
+        "m4pro-12-16": 60,
+        "m4pro-14-20": 73,
+        "m4max-14-32": 88,
+        "m4max-16-40": 100,
+        "m3ultra-28-60": 128,
+        "m3ultra-32-80": 140,
+        "m5-10-10": 48,
+        "m5pro-15-16": 67,
+        "m5max-18-32": 100,
+        "m5max-18-40": 112
+      },
+      "benchmarkNote": "14B dense model; fits in 16GB configs. Scaled from Phi-4 MLX benchmarks (~20 tok/s M1 Pro → ~56 tok/s M1 Ultra); M4-tier extrapolated by memory bandwidth ratio. M5-tier scaled from M4 using memory-bandwidth ratio (M5: 153/120 GB/s = ×1.275; M5 Pro: 307/273 = ×1.12; M5 Max 32c: 460/410 = ×1.12; M5 Max 40c: 614/546 = ×1.12).",
+      "usefulness": {
+        "arena": 7,
+        "coding": 8,
+        "reasoning": 8,
+        "composite": 7.7,
+        "note": "Microsoft Phi-4: punches well above its weight on coding and STEM reasoning. Remarkably capable for its size; strong HumanEval scores."
+      }
+    },
+    {
+      "key": "gemma3-27b-q4",
+      "label": "Gemma 3 27B · Q4",
+      "memoryRequiredGb": 17,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 33,
+        "m4pro-14-20": 40,
+        "m4max-14-32": 48,
+        "m4max-16-40": 55,
+        "m3ultra-28-60": 72,
+        "m3ultra-32-80": 79,
+        "m5-10-10": 19,
+        "m5pro-15-16": 37,
+        "m5max-18-32": 55,
+        "m5max-18-40": 62
+      },
+      "benchmarkNote": "M3 Ultra: 33 tok/s (LM Studio MLX, published benchmark). M4 Max extrapolated from bandwidth; M4 Pro 24GB is tight — needs ≥24GB config. M5 base scaled from M4 Pro 12c by bandwidth ratio (153/273); M5 Pro/Max scaled from M4 equivalents.",
+      "usefulness": {
+        "arena": 7,
+        "coding": 7,
+        "reasoning": 7,
+        "composite": 7.0,
+        "note": "Google Gemma 3 27B: strong multilingual and instruction-following. Good all-rounder; popular for low-memory frontier-quality inference."
+      }
+    },
+    {
+      "key": "qwen3-30b-a3b-q4",
+      "label": "Qwen3 30B-A3B · Q4 (MoE)",
+      "memoryRequiredGb": 12,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 72,
+        "m4pro-14-20": 86,
+        "m4max-14-32": 100,
+        "m4max-16-40": 110,
+        "m3ultra-28-60": 140,
+        "m3ultra-32-80": 155,
+        "m5-10-10": 40,
+        "m5pro-15-16": 81,
+        "m5max-18-32": 115,
+        "m5max-18-40": 124
+      },
+      "benchmarkNote": "MoE: only 3.3B params active per token. M4 Max ~70-100 tok/s (HN community report); M4 Pro 16c ~89 tok/s TG (oMLX benchmark). Very fast due to sparse activation. M5 base scaled from M4 Pro 12c by bandwidth ratio; M5 Pro/Max scaled from M4 equivalents.",
+      "usefulness": {
+        "arena": 8,
+        "coding": 8,
+        "reasoning": 8,
+        "composite": 8.0,
+        "note": "Qwen3 30B-A3B: MoE efficiency delivers frontier-quality output at near-small-model speeds. 91.0 ArenaHard score; strong coding and reasoning. Exceptional value."
+      }
+    },
+    {
+      "key": "llama31-8b-q4",
+      "label": "Llama 3.1 8B · Q4",
+      "memoryRequiredGb": 8,
+      "throughput": {
+        "m4-10-10": 42,
+        "m4pro-12-16": 67,
+        "m4pro-14-20": 81,
+        "m4max-14-32": 95,
+        "m4max-16-40": 110,
+        "m3ultra-28-60": 139,
+        "m3ultra-32-80": 152,
+        "m5-10-10": 54,
+        "m5pro-15-16": 75,
+        "m5max-18-32": 110,
+        "m5max-18-40": 124
+      },
+      "benchmarkNote": "M4 Max ~90–100 tok/s (InsiderLLM MLX Q4). M3 Ultra scaled ~×1.47 vs Max by memory bandwidth. M5 tiers scaled from M4 equivalents by memory bandwidth ratio.",
+      "usefulness": {
+        "arena": 5,
+        "coding": 4,
+        "reasoning": 4,
+        "composite": 4.3,
+        "note": "Solid fast model for simple tasks; outclassed on reasoning by newer 14B+ models. Good for high-throughput chatbots."
+      }
+    },
+    {
+      "key": "qwen25-14b-q4",
+      "label": "Qwen 2.5 14B · Q4",
+      "memoryRequiredGb": 14,
+      "throughput": {
+        "m4-10-10": 25,
+        "m4pro-12-16": 40,
+        "m4pro-14-20": 49,
+        "m4max-14-32": 60,
+        "m4max-16-40": 68,
+        "m3ultra-28-60": 88,
+        "m3ultra-32-80": 96,
+        "m5-10-10": 32,
+        "m5pro-15-16": 45,
+        "m5max-18-32": 69,
+        "m5max-18-40": 76
+      },
+      "benchmarkNote": "Studio M4 Max ~55–65 tok/s for Qwen3 14B class (InsiderLLM); profile uses same ballpark for Qwen 2.5 14B. M5 tiers scaled from M4 equivalents by memory bandwidth ratio.",
+      "usefulness": {
+        "arena": 6,
+        "coding": 6,
+        "reasoning": 6,
+        "composite": 6.0,
+        "note": "Strong generalist at 14B. Competitive coding and instruction following; good balance of speed and quality."
+      }
+    },
+    {
+      "key": "deepseek-r1-32b-q4",
+      "label": "DeepSeek R1 Distill Qwen 32B · Q4",
+      "memoryRequiredGb": 24,
+      "throughput": {
+        "m4-10-10": 8,
+        "m4pro-12-16": 16,
+        "m4pro-14-20": 20,
+        "m4max-14-32": 35,
+        "m4max-16-40": 38,
+        "m3ultra-28-60": 51,
+        "m3ultra-32-80": 56,
+        "m5-10-10": 10,
+        "m5pro-15-16": 18,
+        "m5max-18-32": 40,
+        "m5max-18-40": 43
+      },
+      "benchmarkNote": "Studio M4 Max ~30–40 tok/s for Qwen3 32B (InsiderLLM); used as proxy for 32B-class models. M5 tiers scaled from M4 equivalents by memory bandwidth ratio.",
+      "usefulness": {
+        "arena": 7,
+        "coding": 7,
+        "reasoning": 8,
+        "composite": 7.3,
+        "note": "R1 reasoning distillation makes this a strong everyday reasoning model. High Arena scores vs cost; popular community choice."
+      }
+    },
+    {
+      "key": "llama33-70b-q4",
+      "label": "Llama 3.3 70B · Q4",
+      "memoryRequiredGb": 48,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 5,
+        "m4pro-14-20": 7,
+        "m4max-14-32": 16,
+        "m4max-16-40": 17,
+        "m3ultra-28-60": 27,
+        "m3ultra-32-80": 29,
+        "m5-10-10": 0,
+        "m5pro-15-16": 6,
+        "m5max-18-32": 18,
+        "m5max-18-40": 19
+      },
+      "benchmarkNote": "Studio M4 Max ~15–18 tok/s; M3 Ultra ~25–30 tok/s for Llama 3.3 70B (InsiderLLM MLX Q4). M5 Pro needs 64GB config; M5 Max 32c up to 64GB (fine); M5 Max 40c up to 128GB.",
+      "usefulness": {
+        "arena": 7,
+        "coding": 7,
+        "reasoning": 7,
+        "composite": 7.0,
+        "note": "Meta's best open 70B. Broad general quality; a go-to when 32B falls short but frontier models are too slow."
+      }
+    },
+    {
+      "key": "qwen3-235b-q4",
+      "label": "Qwen3 235B · Q4",
+      "memoryRequiredGb": 122,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 2,
+        "m4max-16-40": 3,
+        "m3ultra-28-60": 5,
+        "m3ultra-32-80": 6,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 3
+      },
+      "benchmarkNote": "Large dense model; needs ~122GB unified RAM for Q4. Only M5 Max 40c (128GB config) can load this — tight headroom. Tok/s are order-of-magnitude (bandwidth-bound); clusters often used in practice.",
+      "usefulness": {
+        "arena": 8,
+        "coding": 8,
+        "reasoning": 9,
+        "composite": 8.3,
+        "note": "Top-tier open model. Near-frontier reasoning and coding; viable on M3 Ultra 256GB or cluster. Strong price-to-quality at the local frontier."
+      }
+    },
+    {
+      "key": "llama31-405b-q4",
+      "label": "Llama 3.1 405B · Q4",
+      "memoryRequiredGb": 210,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 0,
+        "m3ultra-28-60": 1,
+        "m3ultra-32-80": 1,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 0
+      },
+      "benchmarkNote": "~200GB+ weights in Q4; realistically 256GB unified (M3 Ultra BTO). No single MacBook Pro config can host this. Throughput is illustrative — often run sharded across machines (e.g. exo).",
+      "usefulness": {
+        "arena": 8,
+        "coding": 7,
+        "reasoning": 8,
+        "composite": 7.7,
+        "note": "Meta's flagship open model. Strong across the board but eclipsed by MoE models at similar memory cost; mostly of interest for compliance/on-prem scenarios."
+      }
+    },
+    {
+      "key": "deepseek-v3-q4",
+      "label": "DeepSeek V3 · Q4 (MoE)",
+      "memoryRequiredGb": 155,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 0,
+        "m3ultra-28-60": 2,
+        "m3ultra-32-80": 2,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 0
+      },
+      "benchmarkNote": "671B total MoE; only part of weights active per token. Published cluster runs (e.g. 8× Mac minis) are aggregate tok/s — single-Studio numbers are rough guesses. No MacBook Pro config can host this model.",
+      "usefulness": {
+        "arena": 9,
+        "coding": 9,
+        "reasoning": 9,
+        "composite": 9.0,
+        "note": "Top-ranked open model on Chatbot Arena. Best-in-class coding and reasoning at time of release; requires a cluster or M3 Ultra 256GB for practical tok/s."
+      }
+    },
+    {
+      "key": "kimi-k2-thinking-q4",
+      "label": "Kimi K2 Thinking · Q4",
+      "memoryRequiredGb": 120,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 1,
+        "m3ultra-28-60": 2,
+        "m3ultra-32-80": 3,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 1
+      },
+      "benchmarkNote": "Moonshot Kimi K2–class; memory and speed vary by quant and build. M5 Max 40c (128GB) can just load this (tight headroom). Treat as frontier-tier — validate on your stack.",
+      "usefulness": {
+        "arena": 8,
+        "coding": 9,
+        "reasoning": 9,
+        "composite": 8.7,
+        "note": "Moonshot AI frontier reasoning model. Exceptional coding and long-context reasoning; requires high-memory configs. Emerging community favourite."
+      }
+    },
+    {
+      "key": "llama4-scout-q4",
+      "label": "Llama 4 Scout · Q4 (MoE)",
+      "memoryRequiredGb": 61,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 10,
+        "m3ultra-28-60": 17,
+        "m3ultra-32-80": 20,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 11
+      },
+      "benchmarkNote": "109B total MoE, 17B active per token. Requires ~61GB Q4 — needs M4/M5 Max 128GB config (61+6GB OS overhead exceeds 64GB). Throughput estimated from 17B active-param bandwidth; 10M token context is impractical locally.",
+      "usefulness": {
+        "arena": 8,
+        "coding": 7,
+        "reasoning": 8,
+        "composite": 7.7,
+        "note": "Meta Llama 4 Scout: excellent long-context and multimodal capability. MoE efficiency helps, but still needs high-memory configs for local use."
+      }
+    },
+    {
+      "key": "kimi-k25-q4",
+      "label": "Kimi K2.5 · Q4 (MoE)",
+      "memoryRequiredGb": 620,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 0,
+        "m3ultra-28-60": 12,
+        "m3ultra-32-80": 14,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 0
+      },
+      "benchmarkNote": "1T total MoE, 32B active. Q4 checkpoint ~620GB. Community reports show ~23–24 tok/s on 2× M3 Ultra 512GB via Exo/RDMA; per-node figures here are set to match that cluster band under the N^β speedup curve. Treat as community-derived, not standardized lab benchmark.",
+      "usefulness": {
+        "arena": 9,
+        "coding": 9,
+        "reasoning": 9,
+        "composite": 9.0,
+        "note": "Moonshot Kimi K2.5: 1T-param multimodal MoE released Feb 2026. Top-tier across benchmarks. Cluster-only at Q4 on Apple Silicon; best current evidence is community Exo/RDMA runs."
+      }
+    },
+    {
+      "key": "phi4-14b-q8",
+      "label": "Phi-4 14B · Q8",
+      "memoryRequiredGb": 18,
+      "throughput": {
+        "m4-10-10": 19,
+        "m4pro-12-16": 30,
+        "m4pro-14-20": 37,
+        "m4max-14-32": 44,
+        "m4max-16-40": 50,
+        "m3ultra-28-60": 64,
+        "m3ultra-32-80": 70,
+        "m5-10-10": 24,
+        "m5pro-15-16": 34,
+        "m5max-18-32": 50,
+        "m5max-18-40": 56
+      },
+      "benchmarkNote": "Q8 row derived from Q4 throughput using memory-bandwidth scaling (~0.5× Q4 tok/s for dense models). Near-lossless quality, lower throughput.",
+      "usefulness": {
+        "arena": 7,
+        "coding": 8,
+        "reasoning": 8,
+        "composite": 7.7,
+        "note": "Q8 — near-lossless quality; speed estimated from Q4 by bandwidth ratio. Best for quality-sensitive coding and STEM tasks."
+      }
+    },
+    {
+      "key": "gemma3-27b-q8",
+      "label": "Gemma 3 27B · Q8",
+      "memoryRequiredGb": 34,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 17,
+        "m4pro-14-20": 20,
+        "m4max-14-32": 24,
+        "m4max-16-40": 28,
+        "m3ultra-28-60": 36,
+        "m3ultra-32-80": 40,
+        "m5-10-10": 0,
+        "m5pro-15-16": 19,
+        "m5max-18-32": 28,
+        "m5max-18-40": 31
+      },
+      "benchmarkNote": "Q8 row derived from Q4 throughput using memory-bandwidth scaling (~0.5× Q4 tok/s). 34GB req exceeds M5 base max (32GB); needs M5 Pro 48GB config.",
+      "usefulness": {
+        "arena": 7,
+        "coding": 7,
+        "reasoning": 7,
+        "composite": 7.0,
+        "note": "Q8 — quality-focused Gemma 27B mode; throughput estimated from Q4."
+      }
+    },
+    {
+      "key": "qwen3-30b-a3b-q8",
+      "label": "Qwen3 30B-A3B · Q8 (MoE)",
+      "memoryRequiredGb": 24,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 36,
+        "m4pro-14-20": 43,
+        "m4max-14-32": 50,
+        "m4max-16-40": 55,
+        "m3ultra-28-60": 70,
+        "m3ultra-32-80": 78,
+        "m5-10-10": 20,
+        "m5pro-15-16": 41,
+        "m5max-18-32": 58,
+        "m5max-18-40": 62
+      },
+      "benchmarkNote": "Q8 row derived from Q4 throughput using ~0.5× scaling; MoE remains relatively fast at Q8.",
+      "usefulness": {
+        "arena": 8,
+        "coding": 8,
+        "reasoning": 8,
+        "composite": 8.0,
+        "note": "Q8 — near-lossless quality while keeping strong MoE speed characteristics; throughput estimated from Q4."
+      }
+    },
+    {
+      "key": "llama31-8b-q8",
+      "label": "Llama 3.1 8B · Q8",
+      "memoryRequiredGb": 16,
+      "throughput": {
+        "m4-10-10": 21,
+        "m4pro-12-16": 34,
+        "m4pro-14-20": 41,
+        "m4max-14-32": 48,
+        "m4max-16-40": 55,
+        "m3ultra-28-60": 70,
+        "m3ultra-32-80": 76,
+        "m5-10-10": 27,
+        "m5pro-15-16": 38,
+        "m5max-18-32": 55,
+        "m5max-18-40": 62
+      },
+      "benchmarkNote": "Q8 informed by published Apple Silicon results (M4 base ~11 tok/s, M4 Max ~42–55 tok/s) plus bandwidth scaling for remaining tiers.",
+      "usefulness": {
+        "arena": 5,
+        "coding": 4,
+        "reasoning": 4,
+        "composite": 4.3,
+        "note": "Q8 — higher fidelity than Q4 for an 8B baseline model; speed falls roughly in half."
+      }
+    },
+    {
+      "key": "qwen25-14b-q8",
+      "label": "Qwen 2.5 14B · Q8",
+      "memoryRequiredGb": 28,
+      "throughput": {
+        "m4-10-10": 13,
+        "m4pro-12-16": 20,
+        "m4pro-14-20": 25,
+        "m4max-14-32": 30,
+        "m4max-16-40": 34,
+        "m3ultra-28-60": 44,
+        "m3ultra-32-80": 48,
+        "m5-10-10": 16,
+        "m5pro-15-16": 23,
+        "m5max-18-32": 35,
+        "m5max-18-40": 38
+      },
+      "benchmarkNote": "Q8 anchored on published 14B Q8 samples (M4 Max ~29 tok/s) and scaled by memory bandwidth for other tiers.",
+      "usefulness": {
+        "arena": 6,
+        "coding": 6,
+        "reasoning": 6,
+        "composite": 6.0,
+        "note": "Q8 — higher quality 14B generalist profile; throughput estimated from Q4 with benchmark anchors."
+      }
+    },
+    {
+      "key": "deepseek-r1-32b-q8",
+      "label": "DeepSeek R1 Distill Qwen 32B · Q8",
+      "memoryRequiredGb": 48,
+      "throughput": {
+        "m4-10-10": 4,
+        "m4pro-12-16": 8,
+        "m4pro-14-20": 10,
+        "m4max-14-32": 18,
+        "m4max-16-40": 19,
+        "m3ultra-28-60": 26,
+        "m3ultra-32-80": 28,
+        "m5-10-10": 5,
+        "m5pro-15-16": 9,
+        "m5max-18-32": 20,
+        "m5max-18-40": 22
+      },
+      "benchmarkNote": "Q8 row derived from Q4 throughput (~0.5×). Q8 32B is practical only on high-memory tiers.",
+      "usefulness": {
+        "arena": 7,
+        "coding": 7,
+        "reasoning": 8,
+        "composite": 7.3,
+        "note": "Q8 — quality-first 32B reasoning profile; throughput estimated from Q4."
+      }
+    },
+    {
+      "key": "llama33-70b-q8",
+      "label": "Llama 3.3 70B · Q8",
+      "memoryRequiredGb": 96,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 3,
+        "m4pro-14-20": 4,
+        "m4max-14-32": 8,
+        "m4max-16-40": 9,
+        "m3ultra-28-60": 14,
+        "m3ultra-32-80": 15,
+        "m5-10-10": 0,
+        "m5pro-15-16": 3,
+        "m5max-18-32": 9,
+        "m5max-18-40": 10
+      },
+      "benchmarkNote": "Q8 row derived from Q4 throughput (~0.5×) with M4 Max benchmark anchors around ~9 tok/s.",
+      "usefulness": {
+        "arena": 7,
+        "coding": 7,
+        "reasoning": 7,
+        "composite": 7.0,
+        "note": "Q8 — quality-focused 70B mode. High RAM requirement limits practical configs."
+      }
+    },
+    {
+      "key": "qwen3-235b-q8",
+      "label": "Qwen3 235B · Q8",
+      "memoryRequiredGb": 244,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 1,
+        "m4max-16-40": 2,
+        "m3ultra-28-60": 3,
+        "m3ultra-32-80": 3,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 2
+      },
+      "benchmarkNote": "Q8 row derived from Q4 throughput. Effective single-machine fit is extremely limited due to RAM requirements.",
+      "usefulness": {
+        "arena": 8,
+        "coding": 8,
+        "reasoning": 9,
+        "composite": 8.3,
+        "note": "Q8 — near-lossless frontier-class profile; practical mostly on clusters."
+      }
+    },
+    {
+      "key": "llama31-405b-q8",
+      "label": "Llama 3.1 405B · Q8",
+      "memoryRequiredGb": 420,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 0,
+        "m3ultra-28-60": 1,
+        "m3ultra-32-80": 1,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 0
+      },
+      "benchmarkNote": "Q8 row derived from Q4 throughput. Single-machine Apple configs cannot host this profile in practice.",
+      "usefulness": {
+        "arena": 8,
+        "coding": 7,
+        "reasoning": 8,
+        "composite": 7.7,
+        "note": "Q8 — research/reference profile only; cluster-scale deployment required."
+      }
+    },
+    {
+      "key": "deepseek-v3-q8",
+      "label": "DeepSeek V3 · Q8 (MoE)",
+      "memoryRequiredGb": 310,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 0,
+        "m3ultra-28-60": 1,
+        "m3ultra-32-80": 1,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 0
+      },
+      "benchmarkNote": "Q8 row derived from Q4 throughput. High total weight footprint generally implies cluster usage.",
+      "usefulness": {
+        "arena": 9,
+        "coding": 9,
+        "reasoning": 9,
+        "composite": 9.0,
+        "note": "Q8 — highest-fidelity profile for DeepSeek V3 class; cluster-oriented."
+      }
+    },
+    {
+      "key": "kimi-k2-thinking-q8",
+      "label": "Kimi K2 Thinking · Q8",
+      "memoryRequiredGb": 240,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 1,
+        "m3ultra-28-60": 1,
+        "m3ultra-32-80": 2,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 1
+      },
+      "benchmarkNote": "Q8 row derived from Q4 throughput. Practical operation is generally cluster-class.",
+      "usefulness": {
+        "arena": 8,
+        "coding": 9,
+        "reasoning": 9,
+        "composite": 8.7,
+        "note": "Q8 — quality-focused Kimi profile; throughput estimated from Q4."
+      }
+    },
+    {
+      "key": "llama4-scout-q8",
+      "label": "Llama 4 Scout · Q8 (MoE)",
+      "memoryRequiredGb": 122,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 5,
+        "m3ultra-28-60": 9,
+        "m3ultra-32-80": 10,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 6
+      },
+      "benchmarkNote": "Q8 row derived from Q4 throughput with memory-bandwidth scaling.",
+      "usefulness": {
+        "arena": 8,
+        "coding": 7,
+        "reasoning": 8,
+        "composite": 7.7,
+        "note": "Q8 — quality-first Scout profile; high-memory hardware required."
+      }
+    },
+    {
+      "key": "kimi-k25-q8",
+      "label": "Kimi K2.5 · Q8 (MoE)",
+      "memoryRequiredGb": 1240,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 0,
+        "m3ultra-28-60": 6,
+        "m3ultra-32-80": 7,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 0
+      },
+      "benchmarkNote": "Q8 row derived from Q4 community throughput (~0.5×). Requires multi-node 512GB-class clusters in practice.",
+      "usefulness": {
+        "arena": 9,
+        "coding": 9,
+        "reasoning": 9,
+        "composite": 9.0,
+        "note": "Q8 — community-derived cluster profile; cluster-only."
+      }
+    },
+    {
+      "key": "llama31-8b-f16",
+      "label": "Llama 3.1 8B · F16",
+      "memoryRequiredGb": 32,
+      "throughput": {
+        "m4-10-10": 11,
+        "m4pro-12-16": 17,
+        "m4pro-14-20": 20,
+        "m4max-14-32": 24,
+        "m4max-16-40": 28,
+        "m3ultra-28-60": 35,
+        "m3ultra-32-80": 38,
+        "m5-10-10": 14,
+        "m5pro-15-16": 19,
+        "m5max-18-32": 28,
+        "m5max-18-40": 31
+      },
+      "benchmarkNote": "F16 row uses memory-bandwidth scaling (~0.25× Q4 tok/s), aligned with published M4 Max F16 samples (~25 tok/s).",
+      "usefulness": {
+        "arena": 5,
+        "coding": 4,
+        "reasoning": 4,
+        "composite": 4.3,
+        "note": "F16 — highest fidelity, lowest speed. Useful for exactness checks and eval parity."
+      }
+    },
+    {
+      "key": "qwen25-14b-f16",
+      "label": "Qwen 2.5 14B · F16",
+      "memoryRequiredGb": 56,
+      "throughput": {
+        "m4-10-10": 6,
+        "m4pro-12-16": 10,
+        "m4pro-14-20": 12,
+        "m4max-14-32": 15,
+        "m4max-16-40": 17,
+        "m3ultra-28-60": 22,
+        "m3ultra-32-80": 24,
+        "m5-10-10": 8,
+        "m5pro-15-16": 11,
+        "m5max-18-32": 17,
+        "m5max-18-40": 19
+      },
+      "benchmarkNote": "F16 row derived from Q4 throughput (~0.25×) for dense-model bandwidth behavior.",
+      "usefulness": {
+        "arena": 6,
+        "coding": 6,
+        "reasoning": 6,
+        "composite": 6.0,
+        "note": "F16 — quality-first 14B profile; significantly lower throughput."
+      }
+    },
+    {
+      "key": "gemma3-27b-f16",
+      "label": "Gemma 3 27B · F16",
+      "memoryRequiredGb": 68,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 8,
+        "m4pro-14-20": 10,
+        "m4max-14-32": 12,
+        "m4max-16-40": 14,
+        "m3ultra-28-60": 18,
+        "m3ultra-32-80": 20,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 16
+      },
+      "benchmarkNote": "F16 row derived from Q4 throughput (~0.25×), with high RAM requirement (68GB) gating practical configs. Only M5 Max 40c (128GB) can host this.",
+      "usefulness": {
+        "arena": 7,
+        "coding": 7,
+        "reasoning": 7,
+        "composite": 7.0,
+        "note": "F16 — quality-optimized Gemma profile; practical mostly on 64GB+ tiers."
+      }
+    },
+    {
+      "key": "qwen3-30b-a3b-f16",
+      "label": "Qwen3 30B-A3B · F16 (MoE)",
+      "memoryRequiredGb": 48,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 18,
+        "m4pro-14-20": 22,
+        "m4max-14-32": 25,
+        "m4max-16-40": 28,
+        "m3ultra-28-60": 35,
+        "m3ultra-32-80": 39,
+        "m5-10-10": 0,
+        "m5pro-15-16": 20,
+        "m5max-18-32": 29,
+        "m5max-18-40": 31
+      },
+      "benchmarkNote": "F16 row derived from Q4 throughput (~0.25×). MoE still helps relative to similarly sized dense models. 48GB req — M5 Pro needs 48GB config (tight); M5 Max 32c/40c fine.",
+      "usefulness": {
+        "arena": 8,
+        "coding": 8,
+        "reasoning": 8,
+        "composite": 8.0,
+        "note": "F16 — high-fidelity MoE profile with strong quality/speed trade-off on high-memory configs."
+      }
+    },
+    {
+      "key": "deepseek-r1-32b-f16",
+      "label": "DeepSeek R1 Distill Qwen 32B · F16",
+      "memoryRequiredGb": 96,
+      "throughput": {
+        "m4-10-10": 2,
+        "m4pro-12-16": 4,
+        "m4pro-14-20": 5,
+        "m4max-14-32": 9,
+        "m4max-16-40": 10,
+        "m3ultra-28-60": 13,
+        "m3ultra-32-80": 14,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 11
+      },
+      "benchmarkNote": "F16 row derived from Q4 throughput (~0.25×). 96GB req exceeds M5 Pro/Max 32c max (64GB); M5 Max 40c (128GB) handles it.",
+      "usefulness": {
+        "arena": 7,
+        "coding": 7,
+        "reasoning": 8,
+        "composite": 7.3,
+        "note": "F16 — highest-fidelity 32B reasoning profile; throughput is substantially reduced."
+      }
+    },
+    {
+      "key": "llama33-70b-f16",
+      "label": "Llama 3.3 70B · F16",
+      "memoryRequiredGb": 192,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 1,
+        "m4pro-14-20": 2,
+        "m4max-14-32": 4,
+        "m4max-16-40": 4,
+        "m3ultra-28-60": 7,
+        "m3ultra-32-80": 7,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 0
+      },
+      "benchmarkNote": "F16 row derived from Q4 throughput (~0.25×). 192GB req far exceeds any MacBook Pro config; feasible only on 256GB-class Ultra configurations.",
+      "usefulness": {
+        "arena": 7,
+        "coding": 7,
+        "reasoning": 7,
+        "composite": 7.0,
+        "note": "F16 — best-fidelity 70B local profile; limited to very high-memory hardware."
+      }
+    }
+  ]
+}

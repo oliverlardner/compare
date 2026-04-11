@@ -1,0 +1,2129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Local vs Cloud AI Cost Comparison</title>
+  <meta name="description" content="Compare Apple AU desktop pricing and local LLM throughput to cloud API token costs. Break-even calculator, Mac stacks, MLX-style benchmarks — compare.openmoss.cloud." />
+  <meta name="robots" content="index,follow" />
+  <meta name="theme-color" content="#0b1020" />
+  <link rel="canonical" href="https://compare.openmoss.cloud/" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b1020'/%3E%3Cpath d='M8 22V10l8 6-8 6Zm8 0V10l8 6-8 6Z' fill='%237dd3fc' opacity='.9'/%3E%3C/svg%3E" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="compare.openmoss.cloud" />
+  <meta property="og:title" content="Local vs Cloud AI Cost Comparison" />
+  <meta property="og:description" content="Apple hardware vs cloud token spend: break-even, AU pricing, cluster speedup curves, and model throughput estimates." />
+  <meta property="og:url" content="https://compare.openmoss.cloud/" />
+  <meta property="og:image" content="https://compare.openmoss.cloud/og.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="compare.openmoss.cloud — local vs cloud AI economics" />
+  <meta property="og:locale" content="en_AU" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Local vs Cloud AI Cost Comparison" />
+  <meta name="twitter:description" content="Apple hardware vs cloud token spend: break-even, AU pricing, cluster curves, throughput estimates." />
+  <meta name="twitter:image" content="https://compare.openmoss.cloud/og.jpg" />
+
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"WebApplication","name":"compare.openmoss.cloud","url":"https://compare.openmoss.cloud/","description":"Compare local Apple hardware and electricity costs to cloud LLM API pricing; estimate break-even and explore AU store configs.","applicationCategory":"FinanceApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1020;
+      --panel: rgba(17, 24, 39, 0.72);
+      --panel-2: rgba(15, 23, 42, 0.85);
+      --text: #e5eef8;
+      --muted: #9ab0c7;
+      --line: rgba(148, 163, 184, 0.18);
+      --accent: #7dd3fc;
+      --accent-2: #a78bfa;
+      --good: #86efac;
+      --warn: #fbbf24;
+      --bad: #fca5a5;
+      --shadow: 0 20px 80px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(125,211,252,.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(167,139,250,.12), transparent 30%),
+        linear-gradient(180deg, #0b1020 0%, #0a0f1a 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .wrap {
+      width: calc(100vw - 48px);
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+    .hero {
+      padding: 18px 0 26px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(125, 211, 252, 0.08);
+      color: #cbe9f6;
+      font-size: 13px;
+      margin-bottom: 18px;
+    }
+    h1 {
+      font-size: clamp(2.1rem, 6vw, 4.5rem);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+      margin: 0 0 16px;
+      max-width: 900px;
+    }
+    .lead {
+      max-width: 860px;
+      font-size: clamp(1rem, 1.8vw, 1.16rem);
+      line-height: 1.6;
+      color: var(--muted);
+      margin: 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 18px;
+      margin-top: 28px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+    }
+    .panel-inner { padding: 22px; }
+    .panel h2, .panel h3 {
+      margin: 0 0 14px;
+      letter-spacing: -0.02em;
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+    .section + .section { margin-top: 24px; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .field.full { grid-column: 1 / -1; }
+    label {
+      font-size: 13px;
+      color: #c2d0df;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px 13px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.2);
+      background: rgba(2,6,23,.52);
+      color: var(--text);
+      outline: none;
+      font-size: 14px;
+    }
+    input:focus, select:focus {
+      border-color: rgba(125,211,252,.55);
+      box-shadow: 0 0 0 3px rgba(125,211,252,.12);
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .chip {
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(15,23,42,.8);
+      color: #d9e8f5;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .chip:hover { border-color: rgba(125,211,252,.45); }
+    .chip:focus-visible, .tab-btn:focus-visible, .action-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.22);
+    }
+    .results {
+      display: grid;
+      gap: 12px;
+    }
+    .stat {
+      padding: 16px 16px 15px;
+      border-radius: 18px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+    }
+    .stat .k {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    .stat .v {
+      font-size: clamp(1.5rem, 4vw, 2.4rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .stat .small {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+    .highlight {
+      background: linear-gradient(135deg, rgba(125,211,252,.12), rgba(167,139,250,.1));
+    }
+    .good { color: var(--good); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--bad); }
+    .note, .footer-note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .assumptions {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(2,6,23,.35);
+      border: 1px dashed rgba(148,163,184,.24);
+    }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+    .table th, .table td {
+      border-bottom: 1px solid rgba(148,163,184,.12);
+      text-align: left;
+      padding: 10px 6px;
+      color: #d7e5f3;
+    }
+    .table th { color: #9ab0c7; font-weight: 600; }
+    .footer-note { margin-top: 18px; }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--line);
+    }
+    .tab-btn {
+      padding: 12px 20px;
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: 14px 14px 0 0;
+      background: rgba(15, 23, 42, 0.55);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 15px;
+      font-family: inherit;
+      margin-bottom: -1px;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn[aria-selected="true"] {
+      background: var(--panel);
+      border-color: var(--line);
+      color: var(--text);
+    }
+    .tab-panel { margin-top: 0; }
+    .tab-panel[hidden] { display: none !important; }
+    .tab-panel .grid { margin-top: 20px; }
+    .ref-callout {
+      margin-bottom: 18px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(2, 6, 23, 0.45);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+    .ref-callout strong { color: #c2d0df; }
+    .wide-panel { margin-top: 0; }
+    .stack-chart-panel {
+      margin-top: 22px;
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(2, 6, 23, 0.4);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+    }
+    .stack-chart-panel h3 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+    }
+    .stack-chart {
+      width: 100%;
+      max-width: 720px;
+      height: auto;
+      display: block;
+      margin-top: 8px;
+    }
+    .stack-chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .stack-chart-legend span { display: inline-flex; align-items: center; gap: 8px; }
+    .lg-line { width: 28px; height: 3px; border-radius: 2px; display: inline-block; }
+    .panel-heading-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .panel-heading-row h2 { margin: 0; flex: 1; }
+    .panel-lead { margin: 0 0 18px; }
+    .info-btn {
+      flex-shrink: 0;
+      width: 38px;
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(15, 23, 42, 0.65);
+      color: var(--accent);
+      cursor: pointer;
+      padding: 0;
+    }
+    .info-btn:hover { border-color: rgba(125, 211, 252, 0.45); color: #b8e8fc; }
+    .info-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.22);
+    }
+    .info-popover {
+      max-width: min(440px, 94vw);
+      width: 100%;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel-2);
+      color: var(--text);
+      box-shadow: var(--shadow);
+    }
+    .info-popover::backdrop {
+      background: rgba(0, 0, 0, 0.5);
+    }
+    .info-popover-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px 0;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    }
+    .info-popover-head .info-popover-title {
+      margin: 0;
+      padding-bottom: 14px;
+    }
+    .info-popover-close {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      margin: -4px -6px 0 0;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .info-popover-close:hover { color: var(--text); background: rgba(148, 163, 184, 0.12); }
+    .info-popover-inner {
+      padding: 16px 22px 20px;
+      max-height: min(60vh, 480px);
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+    .info-popover-title {
+      font-size: 1.05rem;
+      color: #e5eef8;
+      letter-spacing: -0.02em;
+    }
+    .info-popover-h {
+      margin: 18px 0 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #9ab0c7;
+      font-weight: 600;
+    }
+    .info-popover-h:first-of-type { margin-top: 0; }
+    .info-popover-inner p { margin: 0 0 10px; }
+    .info-popover-inner ul.info-popover-list {
+      margin: 6px 0 0;
+      padding-left: 20px;
+      line-height: 1.5;
+    }
+    .info-popover-inner code { font-size: 12px; }
+    .selector-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .mini-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+    .mini-card {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(2,6,23,.35);
+      border: 1px solid rgba(148,163,184,.14);
+    }
+    .mini-price {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin: 6px 0;
+    }
+    .mini-meta {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .action-btn {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(125,211,252,.12);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .heatmap-controls {
+      display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;
+      margin-top: 18px; margin-bottom: 4px;
+    }
+    .heatmap-controls .field { margin: 0; min-width: 200px; }
+    .heatmap-ratio-field input { width: 100px; }
+    .field-hint { font-size: 11px; color: var(--muted); font-weight: 400; }
+    .heat-na { color: var(--muted); font-style: italic; }
+    .heatmap-wrap { margin-top: 18px; overflow-x: auto; }
+    .heatmap-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 760px;
+      font-size: 13px;
+    }
+    .heatmap-table th, .heatmap-table td {
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(148,163,184,.12);
+      text-align: left;
+      vertical-align: top;
+    }
+    .heatmap-table th { color: #9ab0c7; font-weight: 600; }
+    .heat-good { background: rgba(34, 211, 238, 0.14); }
+    .heat-warn { background: rgba(251, 191, 36, 0.12); }
+    .heat-bad { background: rgba(248, 113, 113, 0.14); }
+    .warning-text { color: var(--bad); font-weight: 600; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid rgba(148,163,184,.18);
+      background: rgba(15,23,42,.7);
+    }
+    @media (max-width: 980px) {
+      .selector-row, .mini-grid { grid-template-columns: 1fr; }
+    }
+
+    a { color: var(--accent); }
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .wrap { width: calc(100vw - 20px); }
+      .panel-inner { padding: 18px; }
+    }
+
+    /* ─── Master table toolbar ─────────────────────────────────── */
+    .master-toolbar {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .master-toolbar-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
+    .master-toolbar-select {
+      width: auto; padding: 7px 12px; font-size: 13px;
+      border-radius: 10px;
+    }
+    .master-toolbar-hint { font-size: 12px; color: var(--muted); }
+
+    /* ─── Master table ─────────────────────────────────────────── */
+    .mt-wrap { overflow-x: auto; margin-top: 4px; }
+    .mt-legend {
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+      margin-bottom: 14px; font-size: 12px; color: var(--muted);
+    }
+    .mt-legend-swatch {
+      display: inline-block; width: 12px; height: 12px;
+      border-radius: 3px; margin-right: 4px; vertical-align: middle;
+    }
+    .mt-table {
+      width: 100%; border-collapse: separate; border-spacing: 0;
+      font-size: 13px;
+    }
+    .mt-table th {
+      padding: 0; color: #9ab0c7; font-weight: 600;
+      border-bottom: 1px solid rgba(148,163,184,.18);
+      background: rgba(11,16,32,.85); position: sticky; top: 0; z-index: 2;
+      vertical-align: bottom;
+    }
+    .mt-table th.mt-col-model { position: sticky; left: 0; z-index: 3; padding: 9px 10px; vertical-align: middle; }
+    /* Rotated hardware column headers */
+    .mt-th-rotated {
+      display: block;
+      writing-mode: vertical-lr;
+      transform: none;
+      white-space: nowrap;
+      padding: 10px 6px 6px;
+      font-size: 12px;
+      line-height: 1.2;
+    }
+    .mt-table td {
+      padding: 7px 8px;
+      border-bottom: 1px solid rgba(148,163,184,.08);
+      vertical-align: middle;
+    }
+    .mt-col-model {
+      position: sticky; left: 0; z-index: 1;
+      background: rgba(11,16,32,.95); min-width: 180px; max-width: 220px;
+      white-space: normal; word-break: break-word; font-weight: 500;
+      font-size: 12px;
+    }
+    .mt-col-score { width: 110px; }
+    .mt-col-mem   { width: 58px; color: var(--muted); font-size: 11px; text-align: center; }
+    .mt-col-tps   { width: 58px; text-align: center; font-size: 12px; }
+    .mt-th-overall  { color: #e9d5ff !important; background: rgba(167,139,250,.13); }
+    .mt-th-portable { color: #a7f3d0 !important; background: rgba(52,211,153,.12); }
+    /* tok/s cell colours */
+    .mtc-none  { background: rgba(0,0,0,.35); color: #475569; }
+    .mtc-tight { background: rgba(251,191,36,.14); color: #fbbf24; font-style: italic; }
+    .mtc-cluster { background: rgba(167,139,250,.14); color: #ddd6fe; }
+    .mtc-low   { background: rgba(251,191,36,.12); color: #fbbf24; }
+    .mtc-mid   { background: rgba(34,211,238,.10); color: #67e8f9; }
+    .mtc-good  { background: rgba(134,239,172,.12); color: #86efac; }
+    .mtc-best  { background: rgba(125,211,252,.18); color: #e0f2fe; font-weight: 700; }
+    /* per-model winner ring */
+    .mtc-winner-per-model {
+      outline: 2px solid rgba(125,211,252,.65);
+      outline-offset: -2px;
+      border-radius: 4px;
+    }
+    /* overall winner */
+    .mtc-winner-overall {
+      background: rgba(167,139,250,.22) !important;
+      color: #e9d5ff !important;
+      font-weight: 700;
+      outline: 2px solid #a78bfa;
+      outline-offset: -2px;
+      border-radius: 4px;
+    }
+    /* portable winner (best MacBook Pro config) */
+    .mtc-winner-portable {
+      background: rgba(52,211,153,.2) !important;
+      color: #a7f3d0 !important;
+      font-weight: 700;
+      outline: 2px solid #34d399;
+      outline-offset: -2px;
+      border-radius: 4px;
+    }
+    .mt-row-portable-winner td.mt-col-model { color: #a7f3d0; }
+    /* usefulness score bar */
+    .score-bar-wrap {
+      display: flex; align-items: center; gap: 7px;
+    }
+    .score-bar-track {
+      flex: 1; height: 6px; border-radius: 999px;
+      background: rgba(148,163,184,.15); min-width: 44px;
+    }
+    .score-bar-fill {
+      height: 100%; border-radius: 999px;
+      background: linear-gradient(90deg, #7dd3fc, #a78bfa);
+    }
+    .score-num { font-weight: 700; font-size: 13px; min-width: 26px; }
+    /* winner row highlight */
+    .mt-row-overall-winner td.mt-col-model {
+      color: #e9d5ff;
+    }
+    .mt-stack-note {
+      font-size: 12px; color: var(--muted); margin-bottom: 12px;
+    }
+    .mt-crown { font-size: 14px; margin-right: 3px; }
+    .mt-winner-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 7px; border-radius: 999px; font-size: 11px; font-weight: 600;
+      background: rgba(167,139,250,.2); color: #c4b5fd;
+    }
+    .mt-winner-badge-portable {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 7px; border-radius: 999px; font-size: 11px; font-weight: 600;
+      background: rgba(52,211,153,.18); color: #6ee7b7;
+      border: 1px solid rgba(167,139,250,.3);
+      margin-left: 6px; vertical-align: middle;
+    }
+    .mt-quant-badge {
+      display: inline-flex; align-items: center;
+      margin-left: 6px; padding: 2px 6px;
+      border-radius: 999px; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.02em; border: 1px solid rgba(148,163,184,.28);
+      background: rgba(148,163,184,.14); color: #cbd5e1;
+      vertical-align: middle;
+    }
+    .mt-quant-badge[data-quant="Q8"] {
+      background: rgba(125,211,252,.16);
+      border-color: rgba(125,211,252,.34);
+      color: #bae6fd;
+    }
+    .mt-quant-badge[data-quant="F16"] {
+      background: rgba(167,139,250,.16);
+      border-color: rgba(167,139,250,.34);
+      color: #ddd6fe;
+    }
+    .mt-cluster-note {
+      font-size: 11px; color: var(--muted); font-style: italic;
+    }
+    /* ─────────────────────────────────────────────────────────── */
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">compare.openmoss.cloud · local vs cloud AI economics</div>
+      <h1>When does buying Apple hardware beat paying for cloud model APIs?</h1>
+      <p class="lead">
+        This page estimates the break-even point between running a local model on your own Apple hardware and paying per token for cloud models like OpenAI and Claude.
+        It is intentionally simple: hardware cost + electricity on one side, token spend on the other. Edit the assumptions until they match your actual workflow.
+      </p>
+    </section>
+
+    <div class="tabs" role="tablist" aria-label="Main sections">
+      <button type="button" class="tab-btn" role="tab" id="tabMaster" aria-selected="true" aria-controls="panelMaster">Master table</button>
+      <button type="button" class="tab-btn" role="tab" id="tabApple" aria-selected="false" aria-controls="panelApple" tabindex="-1">Apple AU pricing</button>
+      <button type="button" class="tab-btn" role="tab" id="tabCalc" aria-selected="false" aria-controls="panelCalc" tabindex="-1">Break-even calculator</button>
+    </div>
+
+    <section id="panelApple" class="tab-panel panel wide-panel" role="tabpanel" aria-labelledby="tabApple" hidden>
+      <div class="panel-inner">
+        <div class="sub" id="applePricingLoadNote" style="display:none;"></div>
+        <div class="panel-heading-row">
+          <h2 id="applePanelHeading">Apple Australia desktop pricing</h2>
+          <button type="button" class="info-btn" id="appleInfoBtn" aria-label="Methodology and data sources" title="Methodology and data sources">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          </button>
+        </div>
+        <p class="sub panel-lead">Choose variant, memory, storage, and stack size. Use <strong>ⓘ</strong> for methodology and sources.</p>
+
+        <dialog id="appleInfoPopover" class="info-popover" aria-labelledby="appleInfoTitle">
+          <div class="info-popover-head">
+            <h3 class="info-popover-title" id="appleInfoTitle">Methodology &amp; data sources</h3>
+            <button type="button" class="info-popover-close" id="appleInfoClose" aria-label="Close">×</button>
+          </div>
+          <div class="info-popover-inner" id="appleInfoPopoverBody"></div>
+        </dialog>
+
+        <div class="selector-row">
+          <div class="field">
+            <label for="miniVariant">Apple desktop variant</label>
+            <select id="miniVariant"></select>
+          </div>
+          <div class="field">
+            <label for="miniMemory">Memory</label>
+            <select id="miniMemory"></select>
+          </div>
+          <div class="field">
+            <label for="miniStorage">Storage</label>
+            <select id="miniStorage"></select>
+          </div>
+          <div class="field">
+            <label for="miniEthernet">Ethernet</label>
+            <select id="miniEthernet"></select>
+          </div>
+        </div>
+        <div class="field" style="max-width: 360px; margin-top: 14px;">
+          <label for="stackCount">Machines in stack (1–8)</label>
+          <select id="stackCount">
+            <option value="1" selected>1 — single machine</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+          </select>
+        </div>
+
+        <div class="mini-grid">
+          <div class="mini-card">
+            <div class="k" id="miniPriceLabel">Selected config — Apple AU (stack total)</div>
+            <div class="mini-price" id="miniPriceAud">A$0</div>
+            <div class="mini-meta" id="miniBreakdown"></div>
+            <div class="btn-row">
+              <button class="action-btn" type="button" id="applyMiniToCalculator">Send stack to calculator</button>
+            </div>
+          </div>
+          <div class="mini-card">
+            <div class="k">Estimated local LLM throughput (combined stack)</div>
+            <div class="field" style="margin-top:10px;">
+              <label for="localModelProfile">Model profile</label>
+              <select id="localModelProfile"></select>
+            </div>
+            <div class="mini-price" id="throughputTps">—</div>
+            <div class="mini-meta" id="throughputDaily">Pick a model to estimate tokens/day for the selected desktop config.</div>
+            <div class="mini-meta" id="throughputFeasibility" style="margin-top:10px;"></div>
+          </div>
+        </div>
+
+        <div class="stack-chart-panel">
+          <h3>Cluster speedup: linear vs RDMA-style curve</h3>
+          <svg id="stackScalingChart" class="stack-chart" viewBox="0 0 720 300" role="img" aria-label="Chart comparing linear and sub-linear cluster speedup by machine count"></svg>
+          <div class="stack-chart-legend" id="stackChartLegend">
+            <span><span class="lg-line" style="background:#64748b;"></span> Ideal linear (N×)</span>
+            <span><span class="lg-line" style="background:var(--accent);"></span> Curve (N^β, fitted)</span>
+            <span><span class="lg-line" style="background:var(--accent-2);"></span> Your selection</span>
+          </div>
+        </div>
+
+        <div class="heatmap-controls">
+          <div class="field">
+            <label for="heatmapModelProfile">Model to evaluate</label>
+            <select id="heatmapModelProfile"></select>
+          </div>
+          <div class="field">
+            <label for="heatmapHoursPerDay">Active inference hours/day <span class="field-hint">(time machine is actually generating)</span></label>
+            <input id="heatmapHoursPerDay" type="number" min="0" max="24" step="0.5" value="8" style="max-width:100px;" />
+          </div>
+          <div class="field">
+            <label for="utilizationPct">Utilisation % <span class="field-hint">(fraction of those hours actually generating tokens)</span></label>
+            <input id="utilizationPct" type="number" min="1" max="100" step="1" value="20" style="max-width:100px;" />
+          </div>
+          <div class="field heatmap-ratio-field">
+            <label for="inputOutputRatio">Input tokens per output token <span class="field-hint">(cloud bills both sides)</span></label>
+            <input id="inputOutputRatio" type="number" min="0" step="0.1" value="3" style="max-width:100px;" />
+          </div>
+        </div>
+
+        <div class="heatmap-wrap">
+          <table class="heatmap-table">
+            <thead>
+              <tr>
+                <th>Config <span id="heatmapStackHint" class="pill" style="font-weight:400;margin-left:6px;"></span></th>
+                <th>Apple AU price <span id="heatmapPriceHint" class="pill" style="font-weight:400;margin-left:6px;"></span></th>
+                <th>Break-even</th>
+                <th id="heatmapSavingsHeader">Monthly savings (AUD)</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody id="heatmapBody"></tbody>
+          </table>
+          <p class="sub" style="margin-top:10px;font-style:italic;" id="heatmapFootnote"></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="panelMaster" class="tab-panel" role="tabpanel" aria-labelledby="tabMaster">
+      <div class="panel wide-panel" style="overflow:visible;">
+        <div class="panel-inner">
+          <div class="ref-callout" style="margin-bottom:16px;">
+            <strong>Real-world note:</strong> The Mac mini M4 16GB was confirmed insufficient for practical local AI use — macOS, background apps, and the model together exceed 16GB unified memory, causing heavy swap and severe slowdowns. <strong>24GB is the practical minimum</strong> for running a single small model alongside a browser. Configs with &lt;8GB headroom after loading the model are marked <em>⚠ swap risk</em> in this table.
+          </div>
+          <div class="master-toolbar">
+            <label for="stackCountMaster" class="master-toolbar-label">Machines in cluster</label>
+            <select id="stackCountMaster" class="master-toolbar-select">
+              <option value="1" selected>1 — single machine</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+            </select>
+            <span class="master-toolbar-hint" id="masterClusterHint"></span>
+          </div>
+          <div id="masterTableContainer">
+            <p class="sub" style="margin:0;">Loading…</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="panelCalc" class="tab-panel" role="tabpanel" aria-labelledby="tabCalc" hidden>
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-inner">
+          <div class="section">
+            <h2>1) Pick a hardware starting point</h2>
+            <div class="sub">These presets are just editable starting points. If your exact config is different, overwrite the numbers below.</div>
+            <div class="chips">
+              <button class="chip" data-hw="m4max" type="button">Mac Studio M4 Max</button>
+              <button class="chip" data-hw="m3ultra" type="button">Mac Studio M3 Ultra</button>
+              <button class="chip" data-hw="mbpmax" type="button">MacBook Pro Max</button>
+            </div>
+            <div class="form-grid">
+              <div class="field">
+                <label for="hardwareName">Hardware name</label>
+                <input id="hardwareName" value="Mac Studio M3 Ultra" />
+              </div>
+              <div class="field">
+                <label for="hardwareCost" id="hardwareCostLabel">Upfront hardware cost (AUD)</label>
+                <input id="hardwareCost" type="number" min="0" step="1" value="3999" />
+              </div>
+              <div class="field">
+                <label for="avgWatts">Average power draw while running (watts)</label>
+                <input id="avgWatts" type="number" min="0" step="1" value="150" />
+              </div>
+              <div class="field">
+                <label for="electricityRate" id="electricityRateLabel">Electricity cost (AUD / kWh)</label>
+                <input id="electricityRate" type="number" min="0" step="0.01" value="0.20" />
+              </div>
+              <div class="field">
+                <label for="hoursPerDay">Hours per day running local inference</label>
+                <input id="hoursPerDay" type="number" min="0" step="0.1" value="24" />
+              </div>
+              <div class="field">
+                <label for="daysPerMonth">Days per month used</label>
+                <input id="daysPerMonth" type="number" min="0" step="1" value="30" />
+              </div>
+              <div class="field full">
+                <label for="otherMonthly" id="otherMonthlyLabel">Other monthly local costs (AUD)</label>
+                <input id="otherMonthly" type="number" min="0" step="1" value="0" />
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <h2>2) Choose a cloud model baseline</h2>
+            <div class="sub">Defaults below are taken from public pricing pages and can be edited. Batch discounts, cached prompts, and priority tiers are not included here.</div>
+            <div class="chips">
+              <button class="chip" data-model="gpt54mini" type="button">OpenAI GPT-5.4 mini</button>
+              <button class="chip" data-model="gpt54" type="button">OpenAI GPT-5.4</button>
+              <button class="chip" data-model="sonnet46" type="button">Claude Sonnet 4.6</button>
+              <button class="chip" data-model="opus46" type="button">Claude Opus 4.6</button>
+            </div>
+            <div class="form-grid">
+              <div class="field">
+                <label for="modelName">Cloud model</label>
+                <input id="modelName" value="Claude Sonnet 4.6" />
+              </div>
+              <div class="field">
+                <label for="inputCost">Input cost (USD / 1M tokens)</label>
+                <input id="inputCost" type="number" min="0" step="0.01" value="3" />
+              </div>
+              <div class="field">
+                <label for="outputCost">Output cost (USD / 1M tokens)</label>
+                <input id="outputCost" type="number" min="0" step="0.01" value="15" />
+              </div>
+              <div class="field">
+                <label for="tokensInPerDay">Input tokens per day</label>
+                <input id="tokensInPerDay" type="number" min="0" step="1000" value="3000000" />
+              </div>
+              <div class="field">
+                <label for="tokensOutPerDay">Output tokens per day</label>
+                <input id="tokensOutPerDay" type="number" min="0" step="1000" value="500000" />
+              </div>
+              <div class="field">
+                <label for="cloudDaysPerMonth">Cloud usage days per month</label>
+                <input id="cloudDaysPerMonth" type="number" min="0" step="1" value="30" />
+              </div>
+              <div class="field">
+                <label for="displayCurrency">Display currency</label>
+                <select id="displayCurrency">
+                  <option value="AUD" selected>AUD</option>
+                  <option value="USD">USD</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="usdToAud">USD → AUD exchange rate</label>
+                <input id="usdToAud" type="number" min="0" step="0.01" value="1.53" />
+              </div>
+            </div>
+          </div>
+
+          <div class="section assumptions">
+            <h3>What this calculator is actually doing</h3>
+            <div class="note">
+              <strong>This panel (break-even snapshot):</strong> uses the token volumes you type in above to estimate your current cloud spend, then compares that to your local electricity cost.<br />
+              Monthly cloud spend = ((input tokens × input price) + (output tokens × output price)) × days per month.<br />
+              Monthly local spend = electricity + any extra monthly cost you add.<br />
+              Break-even months = hardware upfront cost ÷ (monthly cloud spend − monthly local spend).<br /><br />
+              <strong>The sweet-spot heatmap (Apple AU pricing tab):</strong> answers the related question — how many tokens can this hardware generate locally on the chosen model, and what would that same volume cost on the cloud?<br />
+              Output tokens/month = tok/s × 3600 × active hours/day × utilisation % × days/month. Input tokens = output tokens × input:output ratio. Both priced at the cloud API rates from this panel.<br />
+              The tok/s figure is decode (generation) speed. Utilisation accounts for idle time, thinking time, and the fact that real usage is bursty — not a continuous token furnace. A realistic utilisation is 10–30%.<br />
+              Cloud value = net monthly savings + electricity. Break-even = hardware price ÷ net monthly savings. This is a ceiling — tune active hours and utilisation % to match your real workflow.<br /><br />
+              Neither calculation assumes a local model matches the quality of GPT-5.4 or Claude Opus. They only ask: if your workload could move local, when does the hardware pay for itself?
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-inner">
+          <h2>Break-even snapshot</h2>
+          <div class="results">
+            <div class="stat highlight">
+              <div class="k">Estimated break-even</div>
+              <div class="v" id="breakEven">—</div>
+              <div class="small" id="breakEvenNote">Adjust assumptions to see when local starts making economic sense.</div>
+            </div>
+            <div class="stat">
+              <div class="k">Monthly cloud API cost</div>
+              <div class="v" id="monthlyCloud">$0</div>
+              <div class="small" id="cloudExplain"></div>
+            </div>
+            <div class="stat">
+              <div class="k">Monthly local operating cost</div>
+              <div class="v" id="monthlyLocal">$0</div>
+              <div class="small" id="localExplain"></div>
+            </div>
+            <div class="stat">
+              <div class="k">Monthly savings if local replaces cloud</div>
+              <div class="v" id="monthlySavings">$0</div>
+              <div class="small" id="savingsExplain"></div>
+            </div>
+          </div>
+
+          <div class="section" style="margin-top:20px;">
+            <h3>Worked example</h3>
+            <div class="sub">For the current inputs on this page.</div>
+            <table class="table">
+              <tr><th>Item</th><th>Value</th></tr>
+              <tr><td>Hardware</td><td id="summaryHardware">—</td></tr>
+              <tr><td>Cloud model</td><td id="summaryModel">—</td></tr>
+              <tr><td>Input tokens / month</td><td id="summaryInputTokens">—</td></tr>
+              <tr><td>Output tokens / month</td><td id="summaryOutputTokens">—</td></tr>
+              <tr><td>Electricity / month</td><td id="summaryElectricity">—</td></tr>
+            </table>
+          </div>
+
+          <div class="footer-note">
+            Public pricing references used for defaults: OpenAI API pricing and Anthropic API pricing. Apple hardware prices vary a lot by configuration, so treat the device presets here as illustrative rather than authoritative.
+          </div>
+        </div>
+      </div>
+    </div>
+    </section>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    /* macOS uses ~6 GB of unified memory for the OS and background apps.
+       Any config with less than OS_OVERHEAD_GB + memRequired free is swap risk. */
+    const OS_OVERHEAD_GB = 6;
+    /* Flag a config as "tight" if model RAM + overhead leaves < TIGHT_HEADROOM_GB free. */
+    const TIGHT_HEADROOM_GB = 2;
+    /* Cluster sharding is not perfect; reserve part of pooled RAM for runtime overhead/duplication. */
+    const CLUSTER_RAM_EFFICIENCY = 0.85;
+
+    /* Returns { fits, tight, clusterOnly, headroom, pooledHeadroom, pooledUsableGb }.
+       - tight is only for single-node swap risk.
+       - clusterOnly means it doesn't fit a single machine but can fit when sharded across N machines. */
+    function ramFeasibility(ramGb, requiredGb, stackCount = 1) {
+      const localFits = ramGb >= requiredGb;
+      const localHeadroom = ramGb - requiredGb - OS_OVERHEAD_GB;
+      if (localFits) {
+        return {
+          fits: true,
+          tight: localHeadroom < TIGHT_HEADROOM_GB,
+          clusterOnly: false,
+          headroom: localHeadroom,
+          pooledHeadroom: null,
+          pooledUsableGb: null,
+        };
+      }
+      const pooledUsableGb = ramGb * Math.max(1, stackCount) * CLUSTER_RAM_EFFICIENCY;
+      const pooledHeadroom = pooledUsableGb - requiredGb;
+      const clusterOnly = stackCount > 1 && pooledHeadroom >= 0;
+      return {
+        fits: clusterOnly,
+        tight: false,
+        clusterOnly,
+        headroom: localHeadroom,
+        pooledHeadroom,
+        pooledUsableGb,
+      };
+    }
+
+    let clusterScaling = {
+      beta: 0.8439,
+      maxMachinesChart: 8,
+      maxMachinesSelect: 8,
+      methodology:
+        'Speedup S(N)=N^β with β averaged from published 2-node and 4-node tensor-parallel reports (exo). Y-axis: relative throughput vs one machine.',
+      sources: [
+        { title: 'Virge.io — exo Mac cluster', url: 'https://www.virge.io/en/blog/exo-mac-studio-cluster-llm/' },
+      ],
+    };
+
+    function clusterBeta() {
+      return clusterScaling?.beta ?? 0.8439;
+    }
+
+    /** Sub-linear cluster speedup vs ideal N× (RDMA / tensor-parallel inspired). */
+    function clusterSpeedup(n) {
+      const x = Math.max(1, n);
+      return Math.pow(x, clusterBeta());
+    }
+
+    function getStackCount() {
+      const maxM = clusterScaling?.maxMachinesSelect ?? 8;
+      const n = parseInt($('stackCount')?.value || '1', 10);
+      return n >= 1 && n <= maxM ? n : 1;
+    }
+
+    async function loadClusterScaling() {
+      try {
+        const res = await fetch(`cluster-scaling.json?v=${Date.now()}`, { cache: 'no-store' });
+        if (!res.ok) throw new Error(String(res.status));
+        clusterScaling = await res.json();
+      } catch {
+        /* keep defaults */
+      }
+      renderStackScalingChart();
+    }
+
+    function renderStackScalingChart() {
+      const svg = $('stackScalingChart');
+      if (!svg) return;
+      const maxN = clusterScaling?.maxMachinesChart ?? 8;
+      const beta = clusterBeta();
+      const nSel = getStackCount();
+      const W = 720;
+      const H = 300;
+      const padL = 48;
+      const padR = 24;
+      const padT = 32;
+      const padB = 48;
+      const pw = W - padL - padR;
+      const ph = H - padT - padB;
+      const yMax = maxN;
+      const xMin = 1;
+      const xMax = maxN;
+      const sx = (n) => padL + ((n - xMin) / (xMax - xMin)) * pw;
+      const sy = (v) => {
+        const clamped = Math.max(0, Math.min(v, yMax));
+        return padT + ph - (clamped / yMax) * ph;
+      };
+
+      const samples = 96;
+      let dLin = '';
+      let dPow = '';
+      for (let i = 0; i <= samples; i++) {
+        const t = i / samples;
+        const n = xMin + t * (xMax - xMin);
+        const x = sx(n);
+        const yl = sy(n);
+        const yp = sy(Math.pow(n, beta));
+        dLin += `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${yl.toFixed(1)}`;
+        dPow += `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${yp.toFixed(1)}`;
+      }
+
+      const xAxisY = padT + ph;
+      const gridYs = [0, 2, 4, 6, 8].filter((v) => v <= yMax);
+      const parts = [];
+      parts.push(`<text x="${padL}" y="18" fill="#9ab0c7" font-size="13" font-family="Inter,system-ui,sans-serif">Relative throughput (× one machine)</text>`);
+      gridYs.forEach((v) => {
+        parts.push(
+          `<line x1="${padL}" y1="${sy(v)}" x2="${padL + pw}" y2="${sy(v)}" stroke="rgba(148,163,184,0.12)"/>`
+        );
+        parts.push(
+          `<text x="${padL - 10}" y="${sy(v) + 4}" text-anchor="end" fill="#64748b" font-size="11" font-family="Inter,system-ui,sans-serif">${v}</text>`
+        );
+      });
+      for (let n = 1; n <= maxN; n++) {
+        parts.push(
+          `<text x="${sx(n)}" y="${xAxisY + 22}" text-anchor="middle" fill="#9ab0c7" font-size="12" font-family="Inter,system-ui,sans-serif">${n}</text>`
+        );
+      }
+      parts.push(
+        `<text x="${(padL + W - padR) / 2}" y="${H - 10}" text-anchor="middle" fill="#9ab0c7" font-size="13" font-family="Inter,system-ui,sans-serif">Machines (N)</text>`
+      );
+      parts.push(`<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${xAxisY}" stroke="rgba(148,163,184,0.35)"/>`);
+      parts.push(`<line x1="${padL}" y1="${xAxisY}" x2="${padL + pw}" y2="${xAxisY}" stroke="rgba(148,163,184,0.35)"/>`);
+      parts.push(`<path d="${dLin}" fill="none" stroke="#64748b" stroke-width="2.5" stroke-dasharray="7 5" stroke-linejoin="round"/>`);
+      parts.push(`<path d="${dPow}" fill="none" stroke="#7dd3fc" stroke-width="2.5" stroke-linejoin="round"/>`);
+      const xMark = sx(nSel);
+      parts.push(`<line x1="${xMark}" y1="${padT}" x2="${xMark}" y2="${xAxisY}" stroke="#a78bfa" stroke-width="1.5" opacity="0.9"/>`);
+      const yMarkPow = sy(Math.pow(nSel, beta));
+      parts.push(
+        `<circle cx="${xMark}" cy="${yMarkPow}" r="6" fill="#a78bfa" stroke="#0b1020" stroke-width="2"/>`
+      );
+      const tag = `N=${nSel} → ${clusterSpeedup(nSel).toFixed(2)}×`;
+      parts.push(
+        `<text x="${Math.min(xMark + 8, W - padR - 120)}" y="${Math.max(yMarkPow - 10, padT + 14)}" fill="#e5eef8" font-size="12" font-family="Inter,system-ui,sans-serif">${tag}</text>`
+      );
+      svg.innerHTML = parts.join('');
+    }
+
+    function initTabs() {
+      const tabDefs = [
+        { key: 'master', tabEl: $('tabMaster'), panelEl: $('panelMaster') },
+        { key: 'apple',  tabEl: $('tabApple'),  panelEl: $('panelApple')  },
+        { key: 'calc',   tabEl: $('tabCalc'),   panelEl: $('panelCalc')   },
+      ];
+      function activate(key) {
+        tabDefs.forEach((def, i) => {
+          const active = def.key === key;
+          def.tabEl.setAttribute('aria-selected', String(active));
+          def.tabEl.tabIndex = active ? 0 : -1;
+          def.panelEl.hidden = !active;
+          if (active) def.tabEl.focus();
+        });
+      }
+      tabDefs.forEach((def) => def.tabEl.addEventListener('click', () => activate(def.key)));
+      document.querySelector('[role="tablist"]').addEventListener('keydown', (e) => {
+        const cur = tabDefs.findIndex((d) => d.tabEl === document.activeElement);
+        if (cur < 0) return;
+        let next = -1;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (cur + 1) % tabDefs.length;
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (cur - 1 + tabDefs.length) % tabDefs.length;
+        if (e.key === 'Home') next = 0;
+        if (e.key === 'End') next = tabDefs.length - 1;
+        if (next >= 0) { e.preventDefault(); activate(tabDefs[next].key); }
+      });
+      return activate;
+    }
+    const activateTab = initTabs();
+
+    const hardwarePresets = {
+      m4max: { hardwareName: 'Mac Studio M4 Max', hardwareCost: 1999, avgWatts: 90 },
+      m3ultra: { hardwareName: 'Mac Studio M3 Ultra', hardwareCost: 3999, avgWatts: 150 },
+      mbpmax: { hardwareName: 'MacBook Pro Max', hardwareCost: 3199, avgWatts: 55 },
+    };
+
+
+
+    /** Loaded from apple-au-mac-mini.json */
+    let appleAuMacMini = [];
+
+    /** Filled from throughput-benchmarks.json when available */
+    let localModelProfiles = [];
+    let throughputBenchmarkData = null;
+
+    const FALLBACK_THROUGHPUT_PROFILES = [
+      {
+        key: 'phi4-14b-q4',
+        label: 'Phi-4 14B · Q4',
+        memoryRequiredGb: 9,
+        throughput: { 'm4-10-10': 38, 'm4pro-12-16': 60, 'm4pro-14-20': 73, 'm4max-14-32': 88, 'm4max-16-40': 100, 'm3ultra-28-60': 128, 'm3ultra-32-80': 140, 'm5-10-10': 48, 'm5pro-15-16': 67, 'm5max-18-32': 100, 'm5max-18-40': 112 },
+        usefulness: { arena: 7, coding: 8, reasoning: 8, composite: 7.7, note: 'Microsoft Phi-4: punches well above its weight on coding and STEM reasoning.' },
+      },
+      {
+        key: 'gemma3-27b-q4',
+        label: 'Gemma 3 27B · Q4',
+        memoryRequiredGb: 17,
+        throughput: { 'm4-10-10': 0, 'm4pro-12-16': 33, 'm4pro-14-20': 40, 'm4max-14-32': 48, 'm4max-16-40': 55, 'm3ultra-28-60': 72, 'm3ultra-32-80': 79, 'm5-10-10': 19, 'm5pro-15-16': 37, 'm5max-18-32': 55, 'm5max-18-40': 62 },
+        usefulness: { arena: 7, coding: 7, reasoning: 7, composite: 7.0, note: 'Google Gemma 3 27B: strong multilingual and instruction-following.' },
+      },
+      {
+        key: 'qwen3-30b-a3b-q4',
+        label: 'Qwen3 30B-A3B · Q4 (MoE)',
+        memoryRequiredGb: 12,
+        throughput: { 'm4-10-10': 0, 'm4pro-12-16': 72, 'm4pro-14-20': 86, 'm4max-14-32': 100, 'm4max-16-40': 110, 'm3ultra-28-60': 140, 'm3ultra-32-80': 155, 'm5-10-10': 40, 'm5pro-15-16': 81, 'm5max-18-32': 115, 'm5max-18-40': 124 },
+        usefulness: { arena: 8, coding: 8, reasoning: 8, composite: 8.0, note: 'MoE efficiency: frontier-quality at near-small-model speeds. Exceptional value.' },
+      },
+      {
+        key: 'llama31-8b-q4',
+        label: 'Llama 3.1 8B · Q4',
+        memoryRequiredGb: 8,
+        throughput: { 'm4-10-10': 42, 'm4pro-12-16': 67, 'm4pro-14-20': 81, 'm4max-14-32': 95, 'm4max-16-40': 110, 'm3ultra-28-60': 139, 'm3ultra-32-80': 152, 'm5-10-10': 54, 'm5pro-15-16': 75, 'm5max-18-32': 110, 'm5max-18-40': 124 },
+        usefulness: { arena: 5, coding: 4, reasoning: 4, composite: 4.3, note: 'Solid fast model for simple tasks; outclassed on reasoning by newer 14B+ models.' },
+      },
+      {
+        key: 'qwen25-14b-q4',
+        label: 'Qwen 2.5 14B · Q4',
+        memoryRequiredGb: 14,
+        throughput: { 'm4-10-10': 25, 'm4pro-12-16': 40, 'm4pro-14-20': 49, 'm4max-14-32': 60, 'm4max-16-40': 68, 'm3ultra-28-60': 88, 'm3ultra-32-80': 96, 'm5-10-10': 32, 'm5pro-15-16': 45, 'm5max-18-32': 69, 'm5max-18-40': 76 },
+        usefulness: { arena: 6, coding: 6, reasoning: 6, composite: 6.0, note: 'Strong generalist at 14B. Good balance of speed and quality.' },
+      },
+      {
+        key: 'deepseek-r1-32b-q4',
+        label: 'DeepSeek R1 Distill Qwen 32B · Q4',
+        memoryRequiredGb: 24,
+        throughput: { 'm4-10-10': 8, 'm4pro-12-16': 16, 'm4pro-14-20': 20, 'm4max-14-32': 35, 'm4max-16-40': 38, 'm3ultra-28-60': 51, 'm3ultra-32-80': 56, 'm5-10-10': 10, 'm5pro-15-16': 18, 'm5max-18-32': 40, 'm5max-18-40': 43 },
+        usefulness: { arena: 7, coding: 7, reasoning: 8, composite: 7.3, note: 'R1 reasoning distillation; popular community choice at 32B.' },
+      },
+      {
+        key: 'llama33-70b-q4',
+        label: 'Llama 3.3 70B · Q4',
+        memoryRequiredGb: 48,
+        throughput: { 'm4-10-10': 0, 'm4pro-12-16': 5, 'm4pro-14-20': 7, 'm4max-14-32': 16, 'm4max-16-40': 17, 'm3ultra-28-60': 27, 'm3ultra-32-80': 29, 'm5-10-10': 0, 'm5pro-15-16': 6, 'm5max-18-32': 18, 'm5max-18-40': 19 },
+        usefulness: { arena: 7, coding: 7, reasoning: 7, composite: 7.0, note: "Meta's best open 70B; go-to when 32B falls short." },
+      },
+      {
+        key: 'qwen3-235b-q4',
+        label: 'Qwen3 235B · Q4',
+        memoryRequiredGb: 122,
+        throughput: { 'm4-10-10': 0, 'm4pro-12-16': 0, 'm4pro-14-20': 0, 'm4max-14-32': 2, 'm4max-16-40': 3, 'm3ultra-28-60': 5, 'm3ultra-32-80': 6, 'm5-10-10': 0, 'm5pro-15-16': 0, 'm5max-18-32': 0, 'm5max-18-40': 3 },
+        usefulness: { arena: 8, coding: 8, reasoning: 9, composite: 8.3, note: 'Top-tier open model; near-frontier reasoning and coding.' },
+      },
+      {
+        key: 'llama31-405b-q4',
+        label: 'Llama 3.1 405B · Q4',
+        memoryRequiredGb: 210,
+        throughput: { 'm4-10-10': 0, 'm4pro-12-16': 0, 'm4pro-14-20': 0, 'm4max-14-32': 0, 'm4max-16-40': 0, 'm3ultra-28-60': 1, 'm3ultra-32-80': 1, 'm5-10-10': 0, 'm5pro-15-16': 0, 'm5max-18-32': 0, 'm5max-18-40': 0 },
+        usefulness: { arena: 8, coding: 7, reasoning: 8, composite: 7.7, note: "Meta's flagship 405B; strong but eclipsed by MoE at similar RAM cost." },
+      },
+      {
+        key: 'deepseek-v3-q4',
+        label: 'DeepSeek V3 · Q4 (MoE)',
+        memoryRequiredGb: 155,
+        throughput: { 'm4-10-10': 0, 'm4pro-12-16': 0, 'm4pro-14-20': 0, 'm4max-14-32': 0, 'm4max-16-40': 0, 'm3ultra-28-60': 2, 'm3ultra-32-80': 2, 'm5-10-10': 0, 'm5pro-15-16': 0, 'm5max-18-32': 0, 'm5max-18-40': 0 },
+        usefulness: { arena: 9, coding: 9, reasoning: 9, composite: 9.0, note: 'Top-ranked open model on Chatbot Arena. Best-in-class coding and reasoning.' },
+      },
+      {
+        key: 'kimi-k2-thinking-q4',
+        label: 'Kimi K2 Thinking · Q4',
+        memoryRequiredGb: 120,
+        throughput: { 'm4-10-10': 0, 'm4pro-12-16': 0, 'm4pro-14-20': 0, 'm4max-14-32': 0, 'm4max-16-40': 1, 'm3ultra-28-60': 2, 'm3ultra-32-80': 3, 'm5-10-10': 0, 'm5pro-15-16': 0, 'm5max-18-32': 0, 'm5max-18-40': 1 },
+        usefulness: { arena: 8, coding: 9, reasoning: 9, composite: 8.7, note: 'Exceptional coding and long-context reasoning; emerging community favourite.' },
+      },
+      {
+        key: 'llama4-scout-q4',
+        label: 'Llama 4 Scout · Q4 (MoE)',
+        memoryRequiredGb: 61,
+        throughput: { 'm4-10-10': 0, 'm4pro-12-16': 0, 'm4pro-14-20': 0, 'm4max-14-32': 0, 'm4max-16-40': 10, 'm3ultra-28-60': 17, 'm3ultra-32-80': 20, 'm5-10-10': 0, 'm5pro-15-16': 0, 'm5max-18-32': 0, 'm5max-18-40': 11 },
+        usefulness: { arena: 8, coding: 7, reasoning: 8, composite: 7.7, note: "Meta Llama 4 Scout: excellent long-context and multimodal capability. Needs high-memory configs." },
+      },
+      {
+        key: 'kimi-k25-q4',
+        label: 'Kimi K2.5 · Q4 (MoE)',
+        memoryRequiredGb: 620,
+        throughput: { 'm4-10-10': 0, 'm4pro-12-16': 0, 'm4pro-14-20': 0, 'm4max-14-32': 0, 'm4max-16-40': 0, 'm3ultra-28-60': 12, 'm3ultra-32-80': 14, 'm5-10-10': 0, 'm5pro-15-16': 0, 'm5max-18-32': 0, 'm5max-18-40': 0 },
+        usefulness: { arena: 9, coding: 9, reasoning: 9, composite: 9.0, note: '1T-param multimodal MoE (Feb 2026). Top-tier benchmarks. Cluster-only on Apple Silicon; throughput based on community Exo/RDMA reports.' },
+      },
+    ];
+
+    const F16_ALLOWLIST_KEYS = new Set([
+      'llama31-8b-q4',
+      'qwen25-14b-q4',
+      'gemma3-27b-q4',
+      'qwen3-30b-a3b-q4',
+      'deepseek-r1-32b-q4',
+      'llama33-70b-q4',
+    ]);
+
+    function appendDerivedQuantizedProfiles(profiles) {
+      const baseQ4 = profiles.filter((p) => /-q4$/i.test(p.key));
+      const derived = [];
+      baseQ4.forEach((p) => {
+        const q8 = {
+          ...p,
+          key: p.key.replace(/-q4$/i, '-q8'),
+          label: p.label.replace(/·\s*Q4\b/i, '· Q8'),
+          memoryRequiredGb: Math.round((p.memoryRequiredGb || 0) * 2),
+          throughput: Object.fromEntries(
+            Object.entries(p.throughput || {}).map(([k, v]) => [k, Math.round((v || 0) * 0.5)])
+          ),
+          benchmarkNote: 'Derived from Q4 throughput using Apple Silicon memory-bandwidth scaling (~0.5× Q4 tok/s).',
+          usefulness: {
+            ...(p.usefulness || {}),
+            note: `${p.usefulness?.note || 'Q8 profile.'} [Q8 derived from Q4 by bandwidth ratio]`,
+          },
+        };
+        derived.push(q8);
+        if (F16_ALLOWLIST_KEYS.has(p.key)) {
+          derived.push({
+            ...p,
+            key: p.key.replace(/-q4$/i, '-f16'),
+            label: p.label.replace(/·\s*Q4\b/i, '· F16'),
+            memoryRequiredGb: Math.round((p.memoryRequiredGb || 0) * 4),
+            throughput: Object.fromEntries(
+              Object.entries(p.throughput || {}).map(([k, v]) => [k, Math.round((v || 0) * 0.25)])
+            ),
+            benchmarkNote: 'Derived from Q4 throughput using Apple Silicon memory-bandwidth scaling (~0.25× Q4 tok/s).',
+            usefulness: {
+              ...(p.usefulness || {}),
+              note: `${p.usefulness?.note || 'F16 profile.'} [F16 derived from Q4 by bandwidth ratio]`,
+            },
+          });
+        }
+      });
+      return profiles.concat(derived);
+    }
+
+    function normalizeQuantizedProfiles(profiles) {
+      const hasExplicitQ8OrF16 = profiles.some((p) => /-(q8|f16)$/i.test(p.key));
+      if (hasExplicitQ8OrF16) return profiles;
+      return appendDerivedQuantizedProfiles(profiles);
+    }
+
+    function profileQuant(profile) {
+      const m = String(profile?.key || '').match(/-(q\d+|f16)$/i);
+      return m ? m[1].toUpperCase() : 'Q4';
+    }
+
+    function isDerivedQuantProfile(profile) {
+      const quant = profileQuant(profile);
+      if (quant === 'Q4') return false;
+      const note = String(profile?.benchmarkNote || profile?.usefulness?.note || '');
+      return /derived|estimate|~0\.5|~0\.25/i.test(note);
+    }
+
+    function escHtml(t) {
+      if (t == null || t === '') return '';
+      const d = document.createElement('div');
+      d.textContent = t;
+      return d.innerHTML;
+    }
+
+    function refreshAppleInfoPopover() {
+      const body = $('appleInfoPopoverBody');
+      if (!body) return;
+      const parts = [];
+      parts.push('<h4 class="info-popover-h">Multi-Mac stacks</h4>');
+      parts.push(
+        '<p>Example setups include <a href="https://youtu.be/Ju0ndy2kwlw" target="_blank" rel="noopener noreferrer">NetworkChuck — 5× Mac Studios</a>. <strong>Price and power</strong> scale with machine count. <strong>Combined tok/s</strong> uses the sub-linear cluster curve (chart below), not a flat N× multiplier.</p>'
+      );
+      parts.push('<h4 class="info-popover-h">Apple pricing snapshot</h4>');
+      parts.push(
+        '<p>Figures come from a captured AU store snapshot in <code>apple-au-mac-mini.json</code> (AUD). Use the <strong>Cloud vs local calculator</strong> tab for cloud pricing and break-even.</p>'
+      );
+      parts.push('<h4 class="info-popover-h">Cluster speedup curve</h4>');
+      parts.push(`<p>${escHtml(clusterScaling?.methodology)}</p>`);
+      if (clusterScaling?.betaDerivation) {
+        parts.push(`<p class="note">${escHtml(clusterScaling.betaDerivation)}</p>`);
+      }
+      if (clusterScaling?.sources?.length) {
+        parts.push(
+          '<p>' +
+            clusterScaling.sources
+              .map(
+                (s) =>
+                  `<a href="${escHtml(s.url)}" target="_blank" rel="noopener noreferrer">${escHtml(s.title)}</a>`
+              )
+              .join(' · ') +
+            '</p>'
+        );
+      }
+      parts.push('<h4 class="info-popover-h">Single-machine tok/s</h4>');
+      if (throughputBenchmarkData?.sources?.length) {
+        parts.push(`<p>${escHtml(throughputBenchmarkData.methodology)}</p>`);
+        parts.push(
+          '<ul class="info-popover-list">' +
+            throughputBenchmarkData.sources
+              .map(
+                (s) =>
+                  `<li><a href="${escHtml(s.url)}" target="_blank" rel="noopener noreferrer">${escHtml(s.title)}</a>${s.note ? ` — ${escHtml(s.note)}` : ''}</li>`
+              )
+              .join('') +
+            '</ul>'
+        );
+      } else {
+        parts.push(
+          '<p class="note">Could not load <code>throughput-benchmarks.json</code>; built-in throughput presets are used.</p>'
+        );
+      }
+      body.innerHTML = parts.join('');
+    }
+
+    function initAppleInfoDialog() {
+      const btn = $('appleInfoBtn');
+      const dlg = $('appleInfoPopover');
+      const closeBtn = $('appleInfoClose');
+      if (btn && dlg) {
+        btn.addEventListener('click', () => dlg.showModal());
+        dlg.addEventListener('click', (e) => {
+          if (e.target === dlg) dlg.close();
+        });
+      }
+      if (closeBtn && dlg) closeBtn.addEventListener('click', () => dlg.close());
+    }
+
+    async function loadThroughputBenchmarks() {
+      try {
+        const res = await fetch(`throughput-benchmarks.json?v=${Date.now()}`, { cache: 'no-store' });
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
+        throughputBenchmarkData = data;
+        if (Array.isArray(data.localModelProfiles) && data.localModelProfiles.length) {
+          localModelProfiles = normalizeQuantizedProfiles(data.localModelProfiles);
+        } else {
+          localModelProfiles = normalizeQuantizedProfiles(FALLBACK_THROUGHPUT_PROFILES.slice());
+        }
+      } catch {
+        throughputBenchmarkData = null;
+        localModelProfiles = normalizeQuantizedProfiles(FALLBACK_THROUGHPUT_PROFILES.slice());
+      }
+    }
+
+    async function loadApplePricing() {
+      const note = $('applePricingLoadNote');
+      try {
+        const res = await fetch(`apple-au-mac-mini.json?v=${Date.now()}`, { cache: 'no-store' });
+        if (!res.ok) throw new Error(res.statusText || String(res.status));
+        const data = await res.json();
+        appleAuMacMini = Array.isArray(data.variants) ? data.variants : [];
+        if (!appleAuMacMini.length) throw new Error('No variants in JSON');
+        note.style.display = 'none';
+        note.textContent = '';
+        note.classList.remove('warning-text');
+      } catch (e) {
+        appleAuMacMini = [];
+        note.style.display = 'block';
+        note.classList.add('warning-text');
+        note.textContent =
+          'Could not load apple-au-mac-mini.json. Open this site over HTTP (same origin), e.g. python3 -m http.server in the project folder — not as a file:// URL.';
+      }
+      populateMiniSelectors();
+      refreshCurrencyLabels();
+      calculate();
+    }
+
+    function fmtAUD(value) {
+      const formatted = new Intl.NumberFormat('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value || 0);
+      return `A$${formatted}`;
+    }
+
+    function currentCloudCosts() {
+      const inputCost = parseFloat($('inputCost').value) || 0;
+      const outputCost = parseFloat($('outputCost').value) || 0;
+      const tokensInPerDay = parseFloat($('tokensInPerDay').value) || 0;
+      const tokensOutPerDay = parseFloat($('tokensOutPerDay').value) || 0;
+      const cloudDaysPerMonth = parseFloat($('cloudDaysPerMonth').value) || 0;
+      const inputMillionsPerMonth = (tokensInPerDay * cloudDaysPerMonth) / 1000000;
+      const outputMillionsPerMonth = (tokensOutPerDay * cloudDaysPerMonth) / 1000000;
+      return ((inputMillionsPerMonth * inputCost) + (outputMillionsPerMonth * outputCost)) * usdToDisplayRate();
+    }
+
+    function populateMiniSelectors() {
+      if (!appleAuMacMini.length) {
+        $('miniVariant').innerHTML = '';
+        $('miniMemory').innerHTML = '';
+        $('miniStorage').innerHTML = '';
+        $('miniEthernet').innerHTML = '';
+      } else {
+        $('miniVariant').innerHTML = appleAuMacMini.map((item, idx) => `<option value="${idx}">${item.label}</option>`).join('');
+      }
+      const modelOptions = localModelProfiles.map((item, idx) => `<option value="${idx}">${item.label}</option>`).join('');
+      $('localModelProfile').innerHTML = modelOptions;
+      $('heatmapModelProfile').innerHTML = modelOptions;
+      updateMiniSelectorOptions();
+    }
+
+    function updateMiniSelectorOptions() {
+      if (!appleAuMacMini.length) {
+        renderMiniSelection();
+        renderThroughputEstimate();
+        renderHeatmap();
+        return;
+      }
+      const item = appleAuMacMini[parseInt($('miniVariant').value || '0', 10)] || appleAuMacMini[0];
+      $('miniMemory').innerHTML = item.memoryOptions.map((opt, idx) => `<option value="${idx}">${opt.label} ${opt.delta ? `( + ${fmtAUD(opt.delta)} )` : '(included)'}${opt.realWorldNote ? ' ⚠' : ''}</option>`).join('');
+      $('miniStorage').innerHTML = item.storageOptions.map((opt, idx) => `<option value="${idx}">${opt.label} ${opt.delta ? `( + ${fmtAUD(opt.delta)} )` : '(included)'}</option>`).join('');
+      $('miniEthernet').innerHTML = item.ethernetOptions.map((opt, idx) => `<option value="${idx}">${opt.label} ${opt.delta ? `( + ${fmtAUD(opt.delta)} )` : '(included)'}</option>`).join('');
+      const isMbp = item.label.startsWith('MacBook Pro');
+      const ethernetLabel = document.querySelector('label[for="miniEthernet"]');
+      if (ethernetLabel) ethernetLabel.textContent = isMbp ? 'Connectivity' : 'Ethernet';
+      if ($('miniEthernet')) $('miniEthernet').parentElement.style.display = isMbp && item.ethernetOptions.length === 1 && item.ethernetOptions[0].delta === 0 ? 'none' : '';
+      renderMiniSelection();
+      renderThroughputEstimate();
+      renderHeatmap();
+    }
+
+    function getSelectedMiniConfig() {
+      if (!appleAuMacMini.length) return null;
+      const item = appleAuMacMini[parseInt($('miniVariant').value || '0', 10)] || appleAuMacMini[0];
+      const memory = item.memoryOptions[parseInt($('miniMemory').value || '0', 10)] || item.memoryOptions[0];
+      const storage = item.storageOptions[parseInt($('miniStorage').value || '0', 10)] || item.storageOptions[0];
+      const ethernet = item.ethernetOptions[parseInt($('miniEthernet').value || '0', 10)] || item.ethernetOptions[0];
+      const totalAud = item.basePriceAud + memory.delta + storage.delta + ethernet.delta;
+      return { item, memory, storage, ethernet, totalAud };
+    }
+
+    function renderMiniSelection() {
+      const cfg = getSelectedMiniConfig();
+      if (!cfg) {
+        $('miniPriceAud').textContent = '—';
+        $('miniBreakdown').textContent = '';
+        return;
+      }
+      const { item, memory, storage, ethernet, totalAud } = cfg;
+      const n = getStackCount();
+      const stackTotal = totalAud * n;
+      $('miniPriceLabel').textContent =
+        n === 1 ? 'Selected config — Apple AU' : `Selected stack — Apple AU (${n}× identical machines)`;
+      $('miniPriceAud').textContent = fmtAUD(stackTotal);
+      const rwNote = memory.realWorldNote || item.realWorldNote || '';
+      const isMbpItem = item.label.startsWith('MacBook Pro');
+      const connLine = isMbpItem ? `${memory.label} · ${storage.label}` : `${memory.label} · ${storage.label} · ${ethernet.label}`;
+      const ethernetBreakdown = isMbpItem ? '' : ` + Ethernet ${fmtAUD(ethernet.delta)}`;
+      $('miniBreakdown').innerHTML = `${item.label}<br />${connLine}<br />Unit ${fmtAUD(totalAud)} · Stack total ${fmtAUD(stackTotal)} (${n}×)<br />Base ${fmtAUD(item.basePriceAud)} + memory ${fmtAUD(memory.delta)} + storage ${fmtAUD(storage.delta)}${ethernetBreakdown}${rwNote ? `<br /><span class="warning-text" style="font-size:12px;font-weight:400;">⚠ ${escHtml(rwNote)}</span>` : ''}`;
+    }
+
+
+    function parseMemoryGb(label) {
+      const match = String(label || '').match(/(\d+)/);
+      return match ? parseInt(match[1], 10) : 0;
+    }
+
+    function renderThroughputEstimate() {
+      const cfg = getSelectedMiniConfig();
+      if (!cfg) {
+        $('throughputTps').textContent = '—';
+        $('throughputDaily').textContent = 'Load Apple pricing data to compare throughput for each desktop.';
+        $('throughputFeasibility').textContent = '';
+        return;
+      }
+      const { item, memory } = cfg;
+      const n = getStackCount();
+      const profile = localModelProfiles[parseInt($('localModelProfile').value || '0', 10)] || localModelProfiles[0];
+      const memoryGb = parseMemoryGb(memory.label);
+      const tps = profile.throughput[item.variant] || 0;
+      const speedup = clusterSpeedup(n);
+      const aggTps = tps * speedup;
+      const hoursPerDay = parseFloat($('hoursPerDay').value) || 0;
+      const tokensPerDay = aggTps * 3600 * hoursPerDay;
+      const fit = ramFeasibility(memoryGb, profile.memoryRequiredGb, n);
+      const fitsRam = fit.fits;
+      const tight = fit.tight;
+      const feasible = fitsRam && tps > 0;
+      const headroom = fit.headroom;
+
+      $('throughputTps').textContent = feasible
+        ? (n > 1 ? `${fmtNum(aggTps)} tok/s combined` : `${fmtNum(tps)} tok/s`)
+        : 'Not practical';
+      $('throughputDaily').textContent = feasible
+        ? `At ${hoursPerDay} hours/day, ~${fmtNum(tokensPerDay)} combined output tokens/day${n > 1 ? ` (${fmtNum(tps)} tok/s/machine × ${speedup.toFixed(2)}× cluster speedup)` : ''}.`
+        : `This config likely does not have enough practical memory headroom for ${profile.label}.`;
+      const benchNote = profile.benchmarkNote
+        ? `<span class="note"><br />${profile.benchmarkNote}</span>`
+        : '';
+      const tightWarning = feasible && tight
+        ? `<br /><span class="warning-text">⚠ Swap risk:</span> only ~${headroom}GB of headroom after the model loads and macOS takes its ~${OS_OVERHEAD_GB}GB share. Any other running apps (browser, etc.) will push this into swap, causing severe slowdowns.`
+        : '';
+      const clusterOnlyNote = feasible && fit.clusterOnly
+        ? `<br /><span class="pill">Cluster-only fit at N=${n}</span> pooled usable RAM ≈ ${fit.pooledUsableGb.toFixed(1)}GB (${(CLUSTER_RAM_EFFICIENCY * 100).toFixed(0)}% efficiency assumption).`
+        : '';
+      $('throughputFeasibility').innerHTML = feasible
+        ? `Cluster speedup uses S(N)=N^${clusterBeta().toFixed(2)} (β fitted to published 2- and 4-node exo tensor-parallel reports; see chart). Not your workload — illustration only. Example build: <a href="https://youtu.be/Ju0ndy2kwlw" target="_blank" rel="noopener noreferrer">NetworkChuck — 5× Mac Studios</a>.${benchNote}${tightWarning}${clusterOnlyNote}`
+        : `<span class="warning-text">Warning:</span> this configuration is not a practical fit for ${profile.label}. Try a smaller model or a higher-memory config.`;
+    }
+
+    function classifyBreakEven(months, monthlySavings) {
+      if (monthlySavings <= 0 || !Number.isFinite(months)) return { label: 'Better to stay cloud', cls: 'heat-bad' };
+      if (months <= 12) return { label: 'Strong buy-local zone', cls: 'heat-good' };
+      if (months <= 24) return { label: 'Plausible sweet spot', cls: 'heat-good' };
+      if (months <= 36) return { label: 'Borderline', cls: 'heat-warn' };
+      return { label: 'Weak local case', cls: 'heat-bad' };
+    }
+
+    function renderMasterTable() {
+      const container = $('masterTableContainer');
+      if (!container) return;
+      if (!appleAuMacMini.length || !localModelProfiles.length) {
+        container.innerHTML = '<p class="sub" style="margin:0;">Loading data…</p>';
+        return;
+      }
+
+      const n = getStackCount();
+      const speedup = clusterSpeedup(n);
+
+      /* Parse "16GB" → 16 */
+      const parseGb = (label) => parseInt(label, 10) || 0;
+
+      /* One column per variant × RAM option */
+      const cols = [];
+      appleAuMacMini.forEach((v) => {
+        const cpuMatch = v.label.match(/(\d+)-core CPU/);
+        const gpuMatch = v.label.match(/(\d+)-core GPU/);
+        const chipMatch = v.label.match(/(M\d[\w\s]*?)\s*·\s*\d+-core CPU/);
+        const device = v.label.startsWith('Mac mini') ? 'mini' : v.label.startsWith('MacBook Pro') ? 'MBP' : 'Studio';
+        const clusterable = device !== 'MBP';
+        const chip = chipMatch ? chipMatch[1].trim() : '';
+        const cores = cpuMatch && gpuMatch ? `${cpuMatch[1]}c/${gpuMatch[1]}c` : '';
+
+        v.memoryOptions.forEach((mem) => {
+          /* MacBook Pros can't form clusters — always price and throughput as a single machine */
+          const colN = clusterable ? n : 1;
+          const colSpeedup = clusterable ? speedup : 1;
+          const price = (v.basePriceAud + mem.delta + v.storageOptions[0].delta + v.ethernetOptions[0].delta) * colN;
+          cols.push({
+            variant: v.variant,
+            chip: v.chip,
+            device,
+            clusterable,
+            colN,
+            colSpeedup,
+            chipShort: chip,
+            cores,
+            ramLabel: mem.label,
+            ramGb: parseGb(mem.label),
+            price,
+            fullLabel: `${v.label} · ${mem.label}`,
+            headerText: `${device} ${chip} · ${cores} · ${mem.label}`,
+          });
+        });
+      });
+
+      /* Classify tok/s */
+      const tpsClass = (tps, tight) => {
+        if (tight) return 'mtc-tight';
+        if (tps <= 0) return 'mtc-none';
+        if (tps < 5)  return 'mtc-low';
+        if (tps < 20) return 'mtc-mid';
+        if (tps < 60) return 'mtc-good';
+        return 'mtc-best';
+      };
+
+      /* Effective tok/s for a (profile, col) pair — 0 if RAM insufficient.
+         Non-clusterable columns (MacBook Pro) always use speedup=1 regardless of stack setting. */
+      const effectiveTps = (profile, col) => {
+        const colStackCount = col.clusterable ? n : 1;
+        if (!ramFeasibility(col.ramGb, profile.memoryRequiredGb, colStackCount).fits) return 0;
+        const raw = profile.throughput[col.variant] || 0;
+        return raw > 0 ? raw * col.colSpeedup : 0;
+      };
+
+      /* Per-model winner: cheapest col that runs the model without swap risk */
+      const perModelWinnerIdx = (profile) => {
+        for (let i = 0; i < cols.length; i++) {
+          const col = cols[i];
+          const { tight } = ramFeasibility(col.ramGb, profile.memoryRequiredGb, col.colN);
+          if (!tight && effectiveTps(profile, col) >= 5) return i;
+        }
+        return -1;
+      };
+
+      /* Overall winner: composite² × tps / price — swap-risk configs excluded.
+         Squaring composite weights quality heavily — a 9.0 model scores
+         4× higher than a 4.5 model at the same tok/s and price. */
+      let overallWinnerKey = null;
+      let overallWinnerColIdx = -1;
+      let overallBestScore = -Infinity;
+      localModelProfiles.forEach((profile) => {
+        const composite = profile.usefulness?.composite ?? 5;
+        cols.forEach((col, ci) => {
+          const { tight } = ramFeasibility(col.ramGb, profile.memoryRequiredGb, col.colN);
+          if (tight) return; // exclude swap-risk configs from winner consideration
+          const tps = effectiveTps(profile, col);
+          if (tps < 5 || col.price <= 0) return;
+          const score = (composite * composite) * tps / (col.price / 1000);
+          if (score > overallBestScore) {
+            overallBestScore = score;
+            overallWinnerKey = profile.key;
+            overallWinnerColIdx = ci;
+          }
+        });
+      });
+
+      /* Portable winner: same scoring but restricted to MacBook Pro (non-clusterable) columns */
+      let portableWinnerKey = null;
+      let portableWinnerColIdx = -1;
+      let portableBestScore = -Infinity;
+      localModelProfiles.forEach((profile) => {
+        const composite = profile.usefulness?.composite ?? 5;
+        cols.forEach((col, ci) => {
+          if (col.clusterable) return; // laptops only
+          const { tight } = ramFeasibility(col.ramGb, profile.memoryRequiredGb, 1);
+          if (tight) return;
+          const tps = effectiveTps(profile, col);
+          if (tps < 5 || col.price <= 0) return;
+          const score = (composite * composite) * tps / (col.price / 1000);
+          if (score > portableBestScore) {
+            portableBestScore = score;
+            portableWinnerKey = profile.key;
+            portableWinnerColIdx = ci;
+          }
+        });
+      });
+
+      /* Sort models: higher composite first */
+      const sorted = [...localModelProfiles].sort((a, b) =>
+        (b.usefulness?.composite ?? 5) - (a.usefulness?.composite ?? 5)
+      );
+
+      /* Build HTML */
+      const parts = [];
+
+      if (n > 1) {
+        parts.push(`<p class="mt-stack-note">Stack: ${n} machines · throughput scaled ×${speedup.toFixed(2)} (N<sup>${clusterBeta().toFixed(2)}</sup> curve) · prices ×${n}</p>`);
+      }
+
+      /* Legend */
+      parts.push(`
+        <div class="mt-legend">
+          <span><span class="mt-legend-swatch" style="background:rgba(134,239,172,.3);"></span>Good (20–60 tok/s)</span>
+          <span><span class="mt-legend-swatch" style="background:rgba(34,211,238,.2);"></span>Usable (5–20)</span>
+          <span><span class="mt-legend-swatch" style="background:rgba(251,191,36,.2);"></span>Slow (&lt;5)</span>
+          <span><span class="mt-legend-swatch" style="background:rgba(251,191,36,.25);border:1px dashed #fbbf24;"></span>Fits on paper — swap risk in practice</span>
+          <span><span class="mt-legend-swatch" style="background:rgba(167,139,250,.18);border:1px dashed #a78bfa;"></span>Cluster-only fit (sharded RAM)</span>
+          <span><span class="mt-legend-swatch" style="background:rgba(0,0,0,.5);border:1px solid #334;"></span>Not enough RAM</span>
+          <span><span class="mt-legend-swatch" style="background:rgba(125,211,252,.3);border:2px solid rgba(125,211,252,.65);"></span>Best entry point per model</span>
+          <span><span class="mt-legend-swatch" style="background:rgba(167,139,250,.3);border:2px solid #a78bfa;"></span>Overall winner (usefulness × tok/s / price)</span>
+          <span><span class="mt-legend-swatch" style="background:rgba(52,211,153,.25);border:2px solid #34d399;"></span>Best portable (MacBook Pro — usefulness × tok/s / price)</span>
+        </div>
+        <p class="sub" style="margin:0 0 12px;font-style:italic;font-size:12px;">
+          ⚠ macOS uses ~6 GB of unified memory for the OS and background processes. Configs with &lt;8 GB headroom after loading a model are flagged as swap risk.
+          For large models, cluster-only fit is enabled when pooled RAM across N machines (at ${(CLUSTER_RAM_EFFICIENCY * 100).toFixed(0)}% usable efficiency) meets model memory.
+        </p>
+      `);
+
+      /* Table */
+      parts.push('<div class="mt-wrap"><table class="mt-table">');
+
+      /* Header row */
+      parts.push('<thead><tr>');
+      parts.push('<th class="mt-col-model">Model</th>');
+      parts.push('<th class="mt-col-score" style="padding:9px 10px;vertical-align:middle;" title="Composite of Arena Elo, coding benchmarks, and reasoning benchmarks — 1–10 scale">Usefulness</th>');
+      parts.push('<th class="mt-col-mem" style="text-align:center;" title="Minimum RAM required to run this model at Q4">Needs</th>');
+      cols.forEach((col, ci) => {
+        const shortP = fmtAUD(col.price).replace('A$', '$').replace(',000', 'k');
+        const noClusterHint = !col.clusterable && n > 1 ? ' ⚠ laptop: single machine only' : '';
+        const thTitle = `${col.fullLabel} · ${shortP}${noClusterHint}`;
+        const noClusterBadge = !col.clusterable && n > 1 ? '<span style="display:block;font-size:9px;color:var(--warn);letter-spacing:0;margin-top:2px;font-style:italic;">single only</span>' : '';
+        const thWinCls = ci === overallWinnerColIdx ? ' mt-th-overall' : ci === portableWinnerColIdx ? ' mt-th-portable' : '';
+        parts.push(`<th class="mt-col-tps${thWinCls}" title="${escHtml(thTitle)}"><span class="mt-th-rotated">${escHtml(col.headerText)}${noClusterBadge}</span></th>`);
+      });
+      parts.push('</tr></thead>');
+
+      /* Price sub-row */
+      parts.push('<tbody>');
+      parts.push('<tr style="font-size:11px;color:var(--muted);">');
+      parts.push('<td class="mt-col-model" style="color:var(--muted);font-weight:400;font-size:11px;">Price (base storage)</td>');
+      parts.push('<td></td><td></td>');
+      cols.forEach((col, ci) => {
+        const shortP = fmtAUD(col.price).replace('A$', '$').replace(',000', 'k');
+        const priceWinCls = ci === overallWinnerColIdx ? ' mt-th-overall' : ci === portableWinnerColIdx ? ' mt-th-portable' : '';
+        parts.push(`<td class="mt-col-tps${priceWinCls}"><span class="mt-th-rotated" style="font-size:11px;padding:6px 4px 4px;">${shortP}</span></td>`);
+      });
+      parts.push('</tr>');
+
+      /* Model rows */
+      sorted.forEach((profile) => {
+        const composite = profile.usefulness?.composite ?? 5;
+        const isOverallRow = profile.key === overallWinnerKey;
+        const isPortableRow = profile.key === portableWinnerKey;
+        const perWinnerIdx = perModelWinnerIdx(profile);
+
+        const rowCls = isOverallRow ? ' class="mt-row-overall-winner"' : isPortableRow ? ' class="mt-row-portable-winner"' : '';
+        parts.push(`<tr${rowCls}>`);
+
+        /* Model name */
+        const badge = isOverallRow
+          ? '<span class="mt-winner-badge"><span class="mt-crown">♛</span>Overall winner</span>'
+          : isPortableRow
+            ? '<span class="mt-winner-badge-portable"><span class="mt-crown">⌂</span>Best portable</span>'
+            : '';
+        const modelNote = profile.usefulness?.note ? `title="${escHtml(profile.usefulness.note)}"` : '';
+        const quant = profileQuant(profile);
+        const modelLabel = quant === 'Q4'
+          ? profile.label
+          : profile.label.replace(/\s*·\s*(Q8|F16)\b/i, '');
+        const quantBadge = quant === 'Q4'
+          ? ''
+          : `<span class="mt-quant-badge" data-quant="${quant}">${quant}${isDerivedQuantProfile(profile) ? ' ~est' : ''}</span>`;
+        parts.push(`<td class="mt-col-model" ${modelNote}>${escHtml(modelLabel)}${quantBadge}${badge}</td>`);
+
+        /* Usefulness bar */
+        const pct = (composite / 10) * 100;
+        const scoreColor = composite >= 8.5 ? '#c4b5fd' : composite >= 7 ? '#7dd3fc' : composite >= 5 ? '#86efac' : '#fbbf24';
+        parts.push(`
+          <td class="mt-col-score" title="Arena: ${profile.usefulness?.arena ?? '?'} · Coding: ${profile.usefulness?.coding ?? '?'} · Reasoning: ${profile.usefulness?.reasoning ?? '?'}">
+            <div class="score-bar-wrap">
+              <span class="score-num" style="color:${scoreColor}">${composite.toFixed(1)}</span>
+              <div class="score-bar-track"><div class="score-bar-fill" style="width:${pct}%"></div></div>
+            </div>
+          </td>
+        `);
+
+        /* Memory required */
+        parts.push(`<td class="mt-col-mem">${profile.memoryRequiredGb}GB</td>`);
+
+        /* tok/s cells — one per col */
+        cols.forEach((col, ci) => {
+          const tps = effectiveTps(profile, col);
+          const adj = Math.round(tps);
+          const fit = ramFeasibility(col.ramGb, profile.memoryRequiredGb, col.colN);
+          const fitsRam = fit.fits;
+          const tight = fit.tight;
+          const isPerWinner = ci === perWinnerIdx;
+          const isOverallWinner = isOverallRow && ci === overallWinnerColIdx;
+
+          const isPortableWinner = isPortableRow && ci === portableWinnerColIdx;
+          const cls = fit.clusterOnly && adj > 0 ? 'mtc-cluster' : tpsClass(adj, tight && adj > 0);
+          const extraCls = isOverallWinner ? ' mtc-winner-overall' : isPortableWinner ? ' mtc-winner-portable' : isPerWinner ? ' mtc-winner-per-model' : '';
+          const rawTps = profile.throughput[col.variant] || 0;
+          const tightNote = tight && adj > 0 ? ` ⚠ Swap risk — only ${col.ramGb - profile.memoryRequiredGb - OS_OVERHEAD_GB}GB headroom after OS overhead` : '';
+          const clusterNote = fit.clusterOnly && adj > 0
+            ? ` † Cluster-only fit at N=${col.colN} (pooled usable RAM ≈ ${fit.pooledUsableGb.toFixed(1)}GB)`
+            : '';
+          const mbpNote = !col.clusterable && n > 1 ? ' · laptop — single machine only, cluster N/A' : '';
+          const title = !fitsRam
+            ? `${col.ramLabel} < ${profile.memoryRequiredGb}GB required — can't load model`
+            : adj > 0
+              ? `${adj} tok/s${col.clusterable && n > 1 ? ` (${rawTps} × ${col.colSpeedup.toFixed(2)} cluster)` : ''}${isOverallWinner ? ' — Overall winner' : isPortableWinner ? ' — Best portable' : isPerWinner ? ' — Best entry point' : ''}${tightNote}${clusterNote}${mbpNote}`
+              : `Chip too slow / not enough RAM${mbpNote}`;
+          const display = adj > 0 ? (fit.clusterOnly ? `${adj}†` : tight ? `${adj}~` : String(adj)) : '—';
+
+          parts.push(`<td class="mt-col-tps ${cls}${extraCls}" title="${escHtml(title)}">${display}</td>`);
+        });
+
+        parts.push('</tr>');
+      });
+
+      parts.push('</tbody></table></div>');
+
+      /* Footer note */
+      parts.push(`
+        <p class="sub mt-cluster-note" style="margin-top:12px;">
+          Usefulness score = average of Arena Elo rank (Chatbot Arena/LMSys), coding benchmarks (LiveCodeBench), and reasoning benchmarks — all normalised 1–10.
+          Hover any score cell for sub-scores. Q8/F16 rows marked <strong>~est</strong> are derived from Q4 measurements using Apple Silicon memory-bandwidth scaling (Q8 ≈ 0.5× Q4 tok/s, F16 ≈ 0.25× Q4 tok/s).
+          Cells marked <strong>†</strong> are cluster-only fits (model sharded across machines). Frontier models remain conservative placeholders.
+          <strong>Best portable</strong> is the highest-scoring MacBook Pro config by the same composite² × tok/s / price formula as the overall winner, evaluated independently across laptop columns only.
+        </p>
+      `);
+
+      container.innerHTML = parts.join('');
+    }
+
+    function renderHeatmap() {
+      if (!appleAuMacMini.length) {
+        $('heatmapBody').innerHTML = '';
+        $('heatmapStackHint').textContent = '';
+        $('heatmapPriceHint').textContent = '';
+        return;
+      }
+
+      const n = getStackCount();
+      const speedup = clusterSpeedup(n);
+      $('heatmapStackHint').textContent = n > 1 ? `×${n} stack` : '';
+      $('heatmapPriceHint').textContent = n > 1 ? `×${n}` : '';
+
+      /* Cloud pricing from the calculator panel */
+      const inputCostUSD  = parseFloat($('inputCost').value)  || 0;
+      const outputCostUSD = parseFloat($('outputCost').value) || 0;
+      const fx = usdToDisplayRate();
+
+      /* Usage assumptions — electricity from calculator panel, inference hours from heatmap controls */
+      const electricityRate  = parseFloat($('electricityRate').value)   || 0;
+      const elecHoursPerDay  = parseFloat($('hoursPerDay').value)       || 0;  /* hours machine is on — for electricity */
+      const daysPerMonth     = parseFloat($('daysPerMonth').value)      || 0;
+      const otherMonthly     = parseFloat($('otherMonthly').value)      || 0;
+
+      /* Heatmap-specific inference assumptions */
+      const activeHoursPerDay = parseFloat($('heatmapHoursPerDay').value) || 0;
+      const utilizationPct    = Math.min(100, Math.max(0, parseFloat($('utilizationPct').value) || 0));
+      const utilization       = utilizationPct / 100;
+      const ioRatio           = parseFloat($('inputOutputRatio').value)   || 0;
+
+      /* Selected model profile for the heatmap */
+      const profileIdx = parseInt($('heatmapModelProfile').value || '0', 10);
+      const profile = localModelProfiles[profileIdx] || localModelProfiles[0];
+
+      /* Update savings column header to reflect display currency */
+      const savingsHeader = $('heatmapSavingsHeader');
+      if (savingsHeader) savingsHeader.textContent = `Cloud value of local output (${currencyCode()})`;
+
+      /* Dynamic footnote */
+      const footnote = $('heatmapFootnote');
+      if (footnote) {
+        footnote.textContent = `Assumes ${activeHoursPerDay}h/day active, ${utilizationPct}% utilisation `
+          + `(≈ ${(activeHoursPerDay * utilization).toFixed(1)}h/day actually generating tokens), `
+          + `${ioRatio}:1 input:output ratio, ${daysPerMonth} days/month. `
+          + `Cloud value = what the same output token volume would cost at the API prices above. `
+          + `Subtract electricity for net monthly savings. This is a capacity ceiling — real-world value is lower.`;
+      }
+
+      const rows = [];
+
+      appleAuMacMini.forEach((item) => {
+        item.memoryOptions.forEach((memory) => {
+          item.storageOptions.forEach((storage) => {
+            const ethernet = item.ethernetOptions[0];
+            const unitAud  = item.basePriceAud + memory.delta + storage.delta + ethernet.delta;
+            const totalAud = unitAud * n;
+
+            /* Electricity cost — based on hours machine is powered on (from calculator panel) */
+            const monthlyElectricity = ((item.wattsEstimate * n) / 1000) * elecHoursPerDay * daysPerMonth * electricityRate;
+            const monthlyLocal = monthlyElectricity + otherMonthly;
+
+            /* Throughput capacity for the selected model on this variant */
+            const memGb = parseInt(memory.label, 10) || 0;
+            const fit = ramFeasibility(memGb, profile.memoryRequiredGb, n);
+            const fitsRam = fit.fits;
+            const tightRam = fit.tight;
+            const rawTps  = fitsRam ? (profile.throughput[item.variant] || 0) : 0;
+            const effectiveTps = rawTps * speedup;
+            const canRun = fitsRam && effectiveTps > 0;
+
+            let monthlySavings, breakEvenText, verdict, savingsDisplay;
+
+            if (canRun) {
+              /* Tokens generated: decode tok/s × active seconds × utilisation factor */
+              const activeSecondsMonth = activeHoursPerDay * 3600 * daysPerMonth * utilization;
+              const outputTokensMonth  = effectiveTps * activeSecondsMonth;
+              const inputTokensMonth   = outputTokensMonth * ioRatio;
+
+              /* Cloud cost to buy the same volume */
+              const cloudValueUSD = (inputTokensMonth / 1e6 * inputCostUSD) + (outputTokensMonth / 1e6 * outputCostUSD);
+              const cloudValue    = cloudValueUSD * fx;
+
+              monthlySavings = cloudValue - monthlyLocal;
+              const months   = monthlySavings > 0 ? totalAud / monthlySavings : Infinity;
+              verdict        = classifyBreakEven(months, monthlySavings);
+              breakEvenText  = monthlySavings > 0 ? (months < 24 ? `${months.toFixed(1)} mo` : `${(months/12).toFixed(1)} yr`) : 'Never';
+              savingsDisplay = fmtMoney(monthlySavings);
+            } else {
+              /* Model doesn't fit this config */
+              monthlySavings = null;
+              breakEvenText  = 'N/A';
+              verdict        = { label: `Can't run ${profile.label}`, cls: 'heat-bad' };
+              savingsDisplay = `<span class="heat-na">N/A — ${fitsRam ? 'no throughput data' : `needs ${profile.memoryRequiredGb}GB`}</span>`;
+            }
+
+            if (canRun && tightRam) {
+              verdict = { label: verdict.label + ' ⚠ swap risk', cls: 'heat-warn' };
+            }
+            if (canRun && fit.clusterOnly) {
+              verdict = { label: verdict.label + ' † cluster-only fit', cls: 'heat-warn' };
+            }
+
+            rows.push({
+              label: `${item.label} · ${memory.label} · ${storage.label}${n > 1 ? ` · ×${n}` : ''}`,
+              totalAud,
+              breakEvenText,
+              monthlySavings,
+              savingsDisplay,
+              verdict,
+              canRun,
+            });
+          });
+        });
+      });
+
+      /* Sort: runnable rows by price, then non-runnable rows */
+      rows.sort((a, b) => {
+        if (a.canRun !== b.canRun) return a.canRun ? -1 : 1;
+        return a.totalAud - b.totalAud;
+      });
+
+      $('heatmapBody').innerHTML = rows.map((row) => `
+        <tr class="${row.verdict.cls}">
+          <td>${row.label}</td>
+          <td>${fmtAUD(row.totalAud)}</td>
+          <td>${row.breakEvenText}</td>
+          <td>${row.savingsDisplay}</td>
+          <td><span class="pill">${row.verdict.label}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    function refreshCurrencyLabels() {
+      const code = currencyCode();
+      $('hardwareCostLabel').textContent = `Upfront hardware cost (${code})`;
+      $('electricityRateLabel').textContent = `Electricity cost (${code} / kWh)`;
+      $('otherMonthlyLabel').textContent = `Other monthly local costs (${code})`;
+    }
+
+    function applySelectedMiniToCalculator() {
+      const cfg = getSelectedMiniConfig();
+      if (!cfg) return;
+      const { item, memory, storage, ethernet, totalAud } = cfg;
+      const n = getStackCount();
+      $('hardwareName').value = `${item.label} · ${memory.label} · ${storage.label} · ${ethernet.label}${n > 1 ? ` · ×${n} stack` : ''}`;
+      $('hardwareCost').value = totalAud * n;
+      $('avgWatts').value = item.wattsEstimate * n;
+      if (currencyCode() !== 'AUD') $('displayCurrency').value = 'AUD';
+      refreshCurrencyLabels();
+      calculate();
+      renderThroughputEstimate();
+      renderHeatmap();
+      activateTab('calc');
+    }
+
+
+    const modelPresets = {
+      gpt54mini: { modelName: 'OpenAI GPT-5.4 mini', inputCost: 0.75, outputCost: 4.5 },
+      gpt54: { modelName: 'OpenAI GPT-5.4', inputCost: 2.5, outputCost: 15 },
+      sonnet46: { modelName: 'Claude Sonnet 4.6', inputCost: 3, outputCost: 15 },
+      opus46: { modelName: 'Claude Opus 4.6', inputCost: 5, outputCost: 25 },
+    };
+
+    function currencyCode() {
+      return $('displayCurrency')?.value || 'AUD';
+    }
+
+    function usdToDisplayRate() {
+      const code = currencyCode();
+      if (code === 'AUD') return parseFloat($('usdToAud')?.value) || 1.53;
+      return 1;
+    }
+
+    function fmtMoney(value, code = currencyCode()) {
+      const amount = Number(value || 0);
+      const sign = amount < 0 ? '-' : '';
+      const abs = Math.abs(amount);
+      const formatted = new Intl.NumberFormat(code === 'AUD' ? 'en-AU' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(abs);
+      return code === 'AUD' ? `${sign}A$${formatted}` : `${sign}$${formatted}`;
+    }
+
+    function fmtNum(value) {
+      return new Intl.NumberFormat('en-US').format(Math.round(value || 0));
+    }
+
+    function applyPreset(group, key) {
+      const preset = group[key];
+      if (!preset) return;
+      Object.entries(preset).forEach(([id, value]) => {
+        const el = $(id);
+        if (el) el.value = value;
+      });
+      calculate();
+    }
+
+    function calculate() {
+      const hardwareName = $('hardwareName').value || 'Your hardware';
+      const hardwareCost = parseFloat($('hardwareCost').value) || 0;
+      const avgWatts = parseFloat($('avgWatts').value) || 0;
+      const electricityRate = parseFloat($('electricityRate').value) || 0;
+      const hoursPerDay = parseFloat($('hoursPerDay').value) || 0;
+      const daysPerMonth = parseFloat($('daysPerMonth').value) || 0;
+      const otherMonthly = parseFloat($('otherMonthly').value) || 0;
+
+      const modelName = $('modelName').value || 'Your cloud model';
+      const inputCost = parseFloat($('inputCost').value) || 0;
+      const outputCost = parseFloat($('outputCost').value) || 0;
+      const tokensInPerDay = parseFloat($('tokensInPerDay').value) || 0;
+      const tokensOutPerDay = parseFloat($('tokensOutPerDay').value) || 0;
+      const cloudDaysPerMonth = parseFloat($('cloudDaysPerMonth').value) || 0;
+
+      const inputMillionsPerMonth = (tokensInPerDay * cloudDaysPerMonth) / 1000000;
+      const outputMillionsPerMonth = (tokensOutPerDay * cloudDaysPerMonth) / 1000000;
+      const monthlyCloudUsd = (inputMillionsPerMonth * inputCost) + (outputMillionsPerMonth * outputCost);
+      const monthlyCloud = monthlyCloudUsd * usdToDisplayRate();
+
+      const monthlyElectricity = (avgWatts / 1000) * hoursPerDay * daysPerMonth * electricityRate;
+      const monthlyLocal = monthlyElectricity + otherMonthly;
+      const monthlySavings = monthlyCloud - monthlyLocal;
+
+      $('monthlyCloud').textContent = fmtMoney(monthlyCloud);
+      $('cloudExplain').textContent = `${fmtNum(tokensInPerDay * cloudDaysPerMonth)} input + ${fmtNum(tokensOutPerDay * cloudDaysPerMonth)} output tokens per month on ${modelName}.`;
+      $('monthlyLocal').textContent = fmtMoney(monthlyLocal);
+      $('localExplain').textContent = `${avgWatts}W × ${hoursPerDay}h/day × ${daysPerMonth} days/month + extras.`;
+      $('monthlySavings').textContent = fmtMoney(monthlySavings);
+      $('savingsExplain').textContent = monthlySavings > 0
+        ? 'Positive means local is cheaper month-to-month than the cloud assumptions above.'
+        : 'Negative means the cloud assumptions are still cheaper than running local under these inputs.';
+
+      let breakEvenText = 'Never';
+      let breakEvenNote = 'With these assumptions, local does not recover the upfront hardware cost.';
+      let breakClass = 'bad';
+
+      if (monthlySavings > 0) {
+        const months = hardwareCost / monthlySavings;
+        const years = months / 12;
+        breakEvenText = months < 24 ? `${months.toFixed(1)} months` : `${years.toFixed(1)} years`;
+        breakEvenNote = `After about ${months.toFixed(1)} months, the upfront cost of ${hardwareName} is offset by lower ongoing spend.`;
+        breakClass = months <= 12 ? 'good' : months <= 36 ? 'warn' : 'bad';
+      }
+
+      $('breakEven').textContent = breakEvenText;
+      $('breakEven').className = `v ${breakClass}`;
+      $('breakEvenNote').textContent = breakEvenNote;
+
+      $('summaryHardware').textContent = `${hardwareName} · ${fmtMoney(hardwareCost)} upfront`; 
+      $('summaryModel').textContent = modelName;
+      $('summaryInputTokens').textContent = `${fmtNum(tokensInPerDay * cloudDaysPerMonth)} / month`;
+      $('summaryOutputTokens').textContent = `${fmtNum(tokensOutPerDay * cloudDaysPerMonth)} / month`;
+      $('summaryElectricity').textContent = fmtMoney(monthlyElectricity);
+    }
+
+    $('panelCalc').querySelectorAll('input').forEach((el) =>
+      el.addEventListener('input', () => { calculate(); renderHeatmap(); })
+    );
+    $('panelCalc').querySelectorAll('select').forEach((el) =>
+      el.addEventListener('input', () => { calculate(); renderHeatmap(); })
+    );
+    document.querySelectorAll('[data-hw]').forEach((btn) => btn.addEventListener('click', () => applyPreset(hardwarePresets, btn.dataset.hw)));
+    document.querySelectorAll('[data-model]').forEach((btn) => btn.addEventListener('click', () => applyPreset(modelPresets, btn.dataset.model)));
+    $('miniVariant').addEventListener('input', updateMiniSelectorOptions);
+    $('displayCurrency').addEventListener('input', () => { refreshCurrencyLabels(); calculate(); renderMiniSelection(); renderHeatmap(); });
+    $('usdToAud').addEventListener('input', () => { calculate(); renderMiniSelection(); renderHeatmap(); });
+    $('miniMemory').addEventListener('input', () => { renderMiniSelection(); renderThroughputEstimate(); renderHeatmap(); });
+    $('miniStorage').addEventListener('input', () => { renderMiniSelection(); renderHeatmap(); });
+    $('miniEthernet').addEventListener('input', () => { renderMiniSelection(); renderHeatmap(); });
+    $('localModelProfile').addEventListener('input', renderThroughputEstimate);
+    $('heatmapModelProfile').addEventListener('input', renderHeatmap);
+    $('heatmapHoursPerDay').addEventListener('input', renderHeatmap);
+    $('utilizationPct').addEventListener('input', renderHeatmap);
+    $('inputOutputRatio').addEventListener('input', renderHeatmap);
+    function syncStackCount(sourceId) {
+      const val = $(sourceId).value;
+      $('stackCount').value = val;
+      $('stackCountMaster').value = val;
+      const n = parseInt(val, 10);
+      const hint = $('masterClusterHint');
+      if (hint) hint.textContent = n > 1 ? `throughput ×${clusterSpeedup(n).toFixed(2)} · prices ×${n}` : '';
+      renderMiniSelection();
+      renderThroughputEstimate();
+      renderHeatmap();
+      renderStackScalingChart();
+      renderMasterTable();
+    }
+    $('stackCount').addEventListener('input', () => syncStackCount('stackCount'));
+    $('stackCountMaster').addEventListener('input', () => syncStackCount('stackCountMaster'));
+    $('applyMiniToCalculator').addEventListener('click', applySelectedMiniToCalculator);
+
+    (async function boot() {
+      await Promise.all([loadThroughputBenchmarks(), loadClusterScaling()]);
+      await loadApplePricing();
+      renderMasterTable();
+      refreshAppleInfoPopover();
+      initAppleInfoDialog();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "title": "RDMA / Thunderbolt cluster speedup (illustrative)",
+  "methodology": "exo (distributed MLX inference) reports up to ~1.8× speedup with 2 devices and ~3.2× with 4 devices in tensor-parallel mode over Thunderbolt, with RDMA reducing inter-device latency (see sources). This page models combined inference speedup as S(N)=N^β where β is the average of log₂(1.8) and log₄(3.2) so the curve passes near both published anchors. That is a curve fit for visualization — not a guarantee for your model or topology.",
+  "beta": 0.8439,
+  "betaDerivation": "β = average(log₂(1.8), log₄(3.2)) ≈ 0.8439; S(N)=N^β.",
+  "maxMachinesChart": 8,
+  "maxMachinesSelect": 8,
+  "anchors": [
+    {
+      "n": 2,
+      "speedupReported": 1.8,
+      "note": "exo: up to ~1.8× vs one device"
+    },
+    {
+      "n": 4,
+      "speedupReported": 3.2,
+      "note": "exo: up to ~3.2× vs one device"
+    }
+  ],
+  "sources": [
+    {
+      "title": "Virge.io — exo, tensor parallelism & RDMA over Thunderbolt",
+      "url": "https://www.virge.io/en/blog/exo-mac-studio-cluster-llm/"
+    },
+    {
+      "title": "The Outpost — Thunderbolt 5 RDMA in macOS 26.2",
+      "url": "https://theoutpost.ai/news-story/mac-cluster-computing-gets-massive-ai-boost-from-thunderbolt-5-rdma-support-in-mac-os-26-2-22553/"
+    }
+  ]
+}
