@@ -4,7 +4,7 @@ Compare local Apple hardware cost to current cloud token cost.
 
 ## Live site
 
-- https://compare.openmoss.cloud
+**[compare.openmoss.cloud](https://compare.openmoss.cloud)**
 
 ## What this repo contains
 
