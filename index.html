@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none';" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
   <title>Local vs Cloud AI Cost Comparison</title>
   <meta name="description" content="Compare Apple AU desktop pricing and local LLM throughput to cloud API token costs. Break-even calculator, Mac stacks, MLX-style benchmarks — compare.openmoss.cloud." />
   <meta name="robots" content="index,follow" />
@@ -1445,9 +1447,9 @@
         $('miniStorage').innerHTML = '';
         $('miniEthernet').innerHTML = '';
       } else {
-        $('miniVariant').innerHTML = appleAuMacMini.map((item, idx) => `<option value="${idx}">${item.label}</option>`).join('');
+        $('miniVariant').innerHTML = appleAuMacMini.map((item, idx) => `<option value="${idx}">${escHtml(item.label)}</option>`).join('');
       }
-      const modelOptions = localModelProfiles.map((item, idx) => `<option value="${idx}">${item.label}</option>`).join('');
+      const modelOptions = localModelProfiles.map((item, idx) => `<option value="${idx}">${escHtml(item.label)}</option>`).join('');
       $('localModelProfile').innerHTML = modelOptions;
       $('heatmapModelProfile').innerHTML = modelOptions;
       updateMiniSelectorOptions();
@@ -1461,9 +1463,9 @@
         return;
       }
       const item = appleAuMacMini[parseInt($('miniVariant').value || '0', 10)] || appleAuMacMini[0];
-      $('miniMemory').innerHTML = item.memoryOptions.map((opt, idx) => `<option value="${idx}">${opt.label} ${opt.delta ? `( + ${fmtAUD(opt.delta)} )` : '(included)'}${opt.realWorldNote ? ' ⚠' : ''}</option>`).join('');
-      $('miniStorage').innerHTML = item.storageOptions.map((opt, idx) => `<option value="${idx}">${opt.label} ${opt.delta ? `( + ${fmtAUD(opt.delta)} )` : '(included)'}</option>`).join('');
-      $('miniEthernet').innerHTML = item.ethernetOptions.map((opt, idx) => `<option value="${idx}">${opt.label} ${opt.delta ? `( + ${fmtAUD(opt.delta)} )` : '(included)'}</option>`).join('');
+      $('miniMemory').innerHTML = item.memoryOptions.map((opt, idx) => `<option value="${idx}">${escHtml(opt.label)} ${opt.delta ? `( + ${fmtAUD(opt.delta)} )` : '(included)'}${opt.realWorldNote ? ' ⚠' : ''}</option>`).join('');
+      $('miniStorage').innerHTML = item.storageOptions.map((opt, idx) => `<option value="${idx}">${escHtml(opt.label)} ${opt.delta ? `( + ${fmtAUD(opt.delta)} )` : '(included)'}</option>`).join('');
+      $('miniEthernet').innerHTML = item.ethernetOptions.map((opt, idx) => `<option value="${idx}">${escHtml(opt.label)} ${opt.delta ? `( + ${fmtAUD(opt.delta)} )` : '(included)'}</option>`).join('');
       const isMbp = item.label.startsWith('MacBook Pro');
       const ethernetLabel = document.querySelector('label[for="miniEthernet"]');
       if (ethernetLabel) ethernetLabel.textContent = isMbp ? 'Connectivity' : 'Ethernet';
@@ -1498,9 +1500,9 @@
       $('miniPriceAud').textContent = fmtAUD(stackTotal);
       const rwNote = memory.realWorldNote || item.realWorldNote || '';
       const isMbpItem = item.label.startsWith('MacBook Pro');
-      const connLine = isMbpItem ? `${memory.label} · ${storage.label}` : `${memory.label} · ${storage.label} · ${ethernet.label}`;
+      const connLine = isMbpItem ? `${escHtml(memory.label)} · ${escHtml(storage.label)}` : `${escHtml(memory.label)} · ${escHtml(storage.label)} · ${escHtml(ethernet.label)}`;
       const ethernetBreakdown = isMbpItem ? '' : ` + Ethernet ${fmtAUD(ethernet.delta)}`;
-      $('miniBreakdown').innerHTML = `${item.label}<br />${connLine}<br />Unit ${fmtAUD(totalAud)} · Stack total ${fmtAUD(stackTotal)} (${n}×)<br />Base ${fmtAUD(item.basePriceAud)} + memory ${fmtAUD(memory.delta)} + storage ${fmtAUD(storage.delta)}${ethernetBreakdown}${rwNote ? `<br /><span class="warning-text" style="font-size:12px;font-weight:400;">⚠ ${escHtml(rwNote)}</span>` : ''}`;
+      $('miniBreakdown').innerHTML = `${escHtml(item.label)}<br />${connLine}<br />Unit ${fmtAUD(totalAud)} · Stack total ${fmtAUD(stackTotal)} (${n}×)<br />Base ${fmtAUD(item.basePriceAud)} + memory ${fmtAUD(memory.delta)} + storage ${fmtAUD(storage.delta)}${ethernetBreakdown}${rwNote ? `<br /><span class="warning-text" style="font-size:12px;font-weight:400;">⚠ ${escHtml(rwNote)}</span>` : ''}`;
     }
 
 
@@ -1539,7 +1541,7 @@
         ? `At ${hoursPerDay} hours/day, ~${fmtNum(tokensPerDay)} combined output tokens/day${n > 1 ? ` (${fmtNum(tps)} tok/s/machine × ${speedup.toFixed(2)}× cluster speedup)` : ''}.`
         : `This config likely does not have enough practical memory headroom for ${profile.label}.`;
       const benchNote = profile.benchmarkNote
-        ? `<span class="note"><br />${profile.benchmarkNote}</span>`
+        ? `<span class="note"><br />${escHtml(profile.benchmarkNote)}</span>`
         : '';
       const tightWarning = feasible && tight
         ? `<br /><span class="warning-text">⚠ Swap risk:</span> only ~${headroom}GB of headroom after the model loads and macOS takes its ~${OS_OVERHEAD_GB}GB share. Any other running apps (browser, etc.) will push this into swap, causing severe slowdowns.`
@@ -1549,7 +1551,7 @@
         : '';
       $('throughputFeasibility').innerHTML = feasible
         ? `Cluster speedup uses S(N)=N^${clusterBeta().toFixed(2)} (β fitted to published 2- and 4-node exo tensor-parallel reports; see chart). Not your workload — illustration only. Example build: <a href="https://youtu.be/Ju0ndy2kwlw" target="_blank" rel="noopener noreferrer">NetworkChuck — 5× Mac Studios</a>.${benchNote}${tightWarning}${clusterOnlyNote}`
-        : `<span class="warning-text">Warning:</span> this configuration is not a practical fit for ${profile.label}. Try a smaller model or a higher-memory config.`;
+        : `<span class="warning-text">Warning:</span> this configuration is not a practical fit for ${escHtml(profile.label)}. Try a smaller model or a higher-memory config.`;
     }
 
     function classifyBreakEven(months, monthlySavings) {
@@ -1920,8 +1922,8 @@
               /* Model doesn't fit this config */
               monthlySavings = null;
               breakEvenText  = 'N/A';
-              verdict        = { label: `Can't run ${profile.label}`, cls: 'heat-bad' };
-              savingsDisplay = `<span class="heat-na">N/A — ${fitsRam ? 'no throughput data' : `needs ${profile.memoryRequiredGb}GB`}</span>`;
+              verdict        = { label: `Can't run ${escHtml(profile.label)}`, cls: 'heat-bad' };
+              savingsDisplay = `<span class="heat-na">N/A — ${fitsRam ? 'no throughput data' : `needs ${Number(profile.memoryRequiredGb)}GB`}</span>`;
             }
 
             if (canRun && tightRam) {
@@ -1952,7 +1954,7 @@
 
       $('heatmapBody').innerHTML = rows.map((row) => `
         <tr class="${row.verdict.cls}">
-          <td>${row.label}</td>
+          <td>${escHtml(row.label)}</td>
           <td>${fmtAUD(row.totalAud)}</td>
           <td>${row.breakEvenText}</td>
           <td>${row.savingsDisplay}</td>

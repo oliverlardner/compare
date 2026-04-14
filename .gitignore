@@ -6,3 +6,11 @@ Thumbs.db
 .idea/
 .vscode/
 *.log
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+credentials.json
