@@ -581,6 +581,32 @@
       border-radius: 4px;
     }
     .mt-row-portable-winner td.mt-col-model { color: #a7f3d0; }
+    /* row / column crosshair highlight on hover */
+    .mt-table tr.mt-row-highlight > td,
+    .mt-table tr.mt-row-highlight > th {
+      background-color: rgba(148,163,184,.10) !important;
+    }
+    .mt-table tr.mt-row-highlight > td.mt-col-model,
+    .mt-table tr.mt-row-highlight > th.mt-col-model {
+      background-color: rgba(11,16,32,.95) !important;
+      filter: brightness(1.15);
+    }
+    .mt-table td.mt-col-highlight,
+    .mt-table th.mt-col-highlight {
+      background-color: rgba(148,163,184,.10) !important;
+    }
+    .mt-table td.mt-col-highlight.mt-col-model,
+    .mt-table th.mt-col-highlight.mt-col-model {
+      background-color: rgba(11,16,32,.95) !important;
+      filter: brightness(1.15);
+    }
+    /* cell at the intersection — make it pop */
+    .mt-table td.mt-cell-intersect,
+    .mt-table th.mt-cell-intersect {
+      background-color: rgba(148,163,184,.22) !important;
+      outline: 1px solid rgba(148,163,184,.35);
+      outline-offset: -1px;
+    }
     /* usefulness score bar */
     .score-bar-wrap {
       display: flex; align-items: center; gap: 7px;
@@ -1718,28 +1744,28 @@
 
       /* Header row */
       parts.push('<thead><tr>');
-      parts.push('<th class="mt-col-model">Model</th>');
-      parts.push('<th class="mt-col-score" style="padding:9px 10px;vertical-align:middle;" title="Composite of Arena Elo, coding benchmarks, and reasoning benchmarks — 1–10 scale">Usefulness</th>');
-      parts.push('<th class="mt-col-mem" style="text-align:center;" title="Minimum RAM required to run this model at Q4">Needs</th>');
+      parts.push('<th class="mt-col-model" data-col="0">Model</th>');
+      parts.push('<th class="mt-col-score" data-col="1" style="padding:9px 10px;vertical-align:middle;" title="Composite of Arena Elo, coding benchmarks, and reasoning benchmarks — 1–10 scale">Usefulness</th>');
+      parts.push('<th class="mt-col-mem" data-col="2" style="text-align:center;" title="Minimum RAM required to run this model at Q4">Needs</th>');
       cols.forEach((col, ci) => {
         const shortP = fmtAUD(col.price).replace('A$', '$').replace(',000', 'k');
         const noClusterHint = !col.clusterable && n > 1 ? ' ⚠ laptop: single machine only' : '';
         const thTitle = `${col.fullLabel} · ${shortP}${noClusterHint}`;
         const noClusterBadge = !col.clusterable && n > 1 ? '<span style="display:block;font-size:9px;color:var(--warn);letter-spacing:0;margin-top:2px;font-style:italic;">single only</span>' : '';
         const thWinCls = ci === overallWinnerColIdx ? ' mt-th-overall' : ci === portableWinnerColIdx ? ' mt-th-portable' : '';
-        parts.push(`<th class="mt-col-tps${thWinCls}" title="${escHtml(thTitle)}"><span class="mt-th-rotated">${escHtml(col.headerText)}${noClusterBadge}</span></th>`);
+        parts.push(`<th class="mt-col-tps${thWinCls}" data-col="${ci + 3}" title="${escHtml(thTitle)}"><span class="mt-th-rotated">${escHtml(col.headerText)}${noClusterBadge}</span></th>`);
       });
       parts.push('</tr></thead>');
 
       /* Price sub-row */
       parts.push('<tbody>');
       parts.push('<tr style="font-size:11px;color:var(--muted);">');
-      parts.push('<td class="mt-col-model" style="color:var(--muted);font-weight:400;font-size:11px;">Price (base storage)</td>');
-      parts.push('<td></td><td></td>');
+      parts.push('<td class="mt-col-model" data-col="0" style="color:var(--muted);font-weight:400;font-size:11px;">Price (base storage)</td>');
+      parts.push('<td data-col="1"></td><td data-col="2"></td>');
       cols.forEach((col, ci) => {
         const shortP = fmtAUD(col.price).replace('A$', '$').replace(',000', 'k');
         const priceWinCls = ci === overallWinnerColIdx ? ' mt-th-overall' : ci === portableWinnerColIdx ? ' mt-th-portable' : '';
-        parts.push(`<td class="mt-col-tps${priceWinCls}"><span class="mt-th-rotated" style="font-size:11px;padding:6px 4px 4px;">${shortP}</span></td>`);
+        parts.push(`<td class="mt-col-tps${priceWinCls}" data-col="${ci + 3}"><span class="mt-th-rotated" style="font-size:11px;padding:6px 4px 4px;">${shortP}</span></td>`);
       });
       parts.push('</tr>');
 
@@ -1767,13 +1793,13 @@
         const quantBadge = quant === 'Q4'
           ? ''
           : `<span class="mt-quant-badge" data-quant="${quant}">${quant}${isDerivedQuantProfile(profile) ? ' ~est' : ''}</span>`;
-        parts.push(`<td class="mt-col-model" ${modelNote}>${escHtml(modelLabel)}${quantBadge}${badge}</td>`);
+        parts.push(`<td class="mt-col-model" data-col="0" ${modelNote}>${escHtml(modelLabel)}${quantBadge}${badge}</td>`);
 
         /* Usefulness bar */
         const pct = (composite / 10) * 100;
         const scoreColor = composite >= 8.5 ? '#c4b5fd' : composite >= 7 ? '#7dd3fc' : composite >= 5 ? '#86efac' : '#fbbf24';
         parts.push(`
-          <td class="mt-col-score" title="Arena: ${profile.usefulness?.arena ?? '?'} · Coding: ${profile.usefulness?.coding ?? '?'} · Reasoning: ${profile.usefulness?.reasoning ?? '?'}">
+          <td class="mt-col-score" data-col="1" title="Arena: ${profile.usefulness?.arena ?? '?'} · Coding: ${profile.usefulness?.coding ?? '?'} · Reasoning: ${profile.usefulness?.reasoning ?? '?'}">
             <div class="score-bar-wrap">
               <span class="score-num" style="color:${scoreColor}">${composite.toFixed(1)}</span>
               <div class="score-bar-track"><div class="score-bar-fill" style="width:${pct}%"></div></div>
@@ -1782,7 +1808,7 @@
         `);
 
         /* Memory required */
-        parts.push(`<td class="mt-col-mem">${profile.memoryRequiredGb}GB</td>`);
+        parts.push(`<td class="mt-col-mem" data-col="2">${profile.memoryRequiredGb}GB</td>`);
 
         /* tok/s cells — one per col */
         cols.forEach((col, ci) => {
@@ -1810,7 +1836,7 @@
               : `Chip too slow / not enough RAM${mbpNote}`;
           const display = adj > 0 ? (fit.clusterOnly ? `${adj}†` : tight ? `${adj}~` : String(adj)) : '—';
 
-          parts.push(`<td class="mt-col-tps ${cls}${extraCls}" title="${escHtml(title)}">${display}</td>`);
+          parts.push(`<td class="mt-col-tps ${cls}${extraCls}" data-col="${ci + 3}" title="${escHtml(title)}">${display}</td>`);
         });
 
         parts.push('</tr>');
@@ -2118,6 +2144,49 @@
     $('stackCount').addEventListener('input', () => syncStackCount('stackCount'));
     $('stackCountMaster').addEventListener('input', () => syncStackCount('stackCountMaster'));
     $('applyMiniToCalculator').addEventListener('click', applySelectedMiniToCalculator);
+
+    /* Master table crosshair highlight — delegated so it survives re-renders */
+    (function () {
+      const container = $('masterTableContainer');
+      let activeRow = null;
+      let activeCol = null;
+
+      function clearHighlight() {
+        if (activeRow) { activeRow.classList.remove('mt-row-highlight'); activeRow = null; }
+        if (activeCol !== null) {
+          container.querySelectorAll(`[data-col="${activeCol}"]`).forEach((el) => {
+            el.classList.remove('mt-col-highlight', 'mt-cell-intersect');
+          });
+          activeCol = null;
+        }
+      }
+
+      container.addEventListener('mouseover', (e) => {
+        const cell = e.target.closest('td, th');
+        if (!cell) return;
+        const row = cell.closest('tr');
+        const col = cell.dataset.col;
+        if (row === activeRow && col === activeCol) return;
+
+        clearHighlight();
+
+        if (row) {
+          row.classList.add('mt-row-highlight');
+          activeRow = row;
+        }
+        if (col !== undefined) {
+          container.querySelectorAll(`[data-col="${col}"]`).forEach((el) => {
+            el.classList.add('mt-col-highlight');
+          });
+          activeCol = col;
+        }
+        if (row && col !== undefined) {
+          cell.classList.add('mt-cell-intersect');
+        }
+      });
+
+      container.addEventListener('mouseleave', clearHighlight);
+    })();
 
     (async function boot() {
       await Promise.all([loadThroughputBenchmarks(), loadClusterScaling()]);
