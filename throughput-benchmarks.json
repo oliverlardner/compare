@@ -50,6 +50,21 @@
       "title": "apxml.com — Kimi K2.5 specifications",
       "url": "http://apxml.com/models/kimi-k25",
       "note": "Kimi K2.5: 1T total MoE, 32B active, ~620GB Q4 — cluster-only for practical use"
+    },
+    {
+      "title": "mlx-community — GLM-5-4bit",
+      "url": "https://huggingface.co/mlx-community/GLM-5-4bit",
+      "note": "MLX 4-bit quantized GLM-5 model card; lists ~419GB Apple Silicon memory footprint"
+    },
+    {
+      "title": "mlx-community — GLM-5-MXFP4-Q8",
+      "url": "https://huggingface.co/mlx-community/GLM-5-MXFP4-Q8",
+      "note": "Mixed-precision MXFP4-Q8 MLX quantization for GLM-5; lists ~405GB footprint"
+    },
+    {
+      "title": "Awni Hannun — GLM-5 on 512GB M3 Ultra",
+      "url": "https://x.com/awnihannun/status/2022007608811696158",
+      "note": "Community MLX run reporting ~15.4 tok/s and ~419GB memory on a single 512GB M3 Ultra"
     }
   ],
   "localModelProfiles": [
@@ -311,6 +326,32 @@
         "reasoning": 9,
         "composite": 9.0,
         "note": "Top-ranked open model on Chatbot Arena. Best-in-class coding and reasoning at time of release; requires a cluster or M3 Ultra 256GB for practical tok/s."
+      }
+    },
+    {
+      "key": "glm5-4bit-q4",
+      "label": "GLM-5 · Q4 (MLX 4-bit)",
+      "memoryRequiredGb": 419,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 0,
+        "m3ultra-28-60": 15,
+        "m3ultra-32-80": 16,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 0
+      },
+      "benchmarkNote": "GLM-5 is a 744B total / 40B active MoE. MLX 4-bit card lists ~419GB footprint; community single-node M3 Ultra 512GB runs report ~15.4 tok/s. Treat as 512GB-class only on Apple Silicon.",
+      "usefulness": {
+        "arena": 9,
+        "coding": 10,
+        "reasoning": 9,
+        "composite": 9.3,
+        "note": "Z.ai GLM-5 became the leading open-weights model for coding and long-horizon agentic work in early 2026. Excellent frontier quality, but practical only on 512GB-class Apple Silicon."
       }
     },
     {
@@ -649,6 +690,32 @@
         "reasoning": 9,
         "composite": 9.0,
         "note": "Q8 — highest-fidelity profile for DeepSeek V3 class; cluster-oriented."
+      }
+    },
+    {
+      "key": "glm5-mxfp4-q8",
+      "label": "GLM-5 · MXFP4-Q8 (MLX)",
+      "memoryRequiredGb": 405,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 0,
+        "m3ultra-28-60": 15,
+        "m3ultra-32-80": 16,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 0
+      },
+      "benchmarkNote": "Custom MLX mixed-precision quant: experts in MXFP4, attention/embeddings/shared components in 8-bit. Model card lists ~405GB footprint. Public Apple Silicon tok/s data is sparse, so throughput is kept in the same conservative 15-16 tok/s M3 Ultra band as the 4-bit MLX runs.",
+      "usefulness": {
+        "arena": 9,
+        "coding": 10,
+        "reasoning": 9,
+        "composite": 9.3,
+        "note": "MXFP4-Q8 is the quality-focused MLX quant for GLM-5. Same frontier-class capability as the 4-bit row, with a mixed-precision weight layout that still needs 512GB-class Apple Silicon."
       }
     },
     {

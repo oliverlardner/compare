@@ -1252,11 +1252,25 @@
         usefulness: { arena: 9, coding: 9, reasoning: 9, composite: 9.0, note: 'Top-ranked open model on Chatbot Arena. Best-in-class coding and reasoning.' },
       },
       {
+        key: 'glm5-4bit-q4',
+        label: 'GLM-5 · Q4 (MLX 4-bit)',
+        memoryRequiredGb: 419,
+        throughput: { 'm4-10-10': 0, 'm4pro-12-16': 0, 'm4pro-14-20': 0, 'm4max-14-32': 0, 'm4max-16-40': 0, 'm3ultra-28-60': 15, 'm3ultra-32-80': 16, 'm5-10-10': 0, 'm5pro-15-16': 0, 'm5max-18-32': 0, 'm5max-18-40': 0 },
+        usefulness: { arena: 9, coding: 10, reasoning: 9, composite: 9.3, note: 'Z.ai GLM-5 became a leading open-weights coding and agentic model in early 2026. Practical only on 512GB-class Apple Silicon.' },
+      },
+      {
         key: 'kimi-k2-thinking-q4',
         label: 'Kimi K2 Thinking · Q4',
         memoryRequiredGb: 120,
         throughput: { 'm4-10-10': 0, 'm4pro-12-16': 0, 'm4pro-14-20': 0, 'm4max-14-32': 0, 'm4max-16-40': 1, 'm3ultra-28-60': 2, 'm3ultra-32-80': 3, 'm5-10-10': 0, 'm5pro-15-16': 0, 'm5max-18-32': 0, 'm5max-18-40': 1 },
         usefulness: { arena: 8, coding: 9, reasoning: 9, composite: 8.7, note: 'Exceptional coding and long-context reasoning; emerging community favourite.' },
+      },
+      {
+        key: 'glm5-mxfp4-q8',
+        label: 'GLM-5 · MXFP4-Q8 (MLX)',
+        memoryRequiredGb: 405,
+        throughput: { 'm4-10-10': 0, 'm4pro-12-16': 0, 'm4pro-14-20': 0, 'm4max-14-32': 0, 'm4max-16-40': 0, 'm3ultra-28-60': 15, 'm3ultra-32-80': 16, 'm5-10-10': 0, 'm5pro-15-16': 0, 'm5max-18-32': 0, 'm5max-18-40': 0 },
+        usefulness: { arena: 9, coding: 10, reasoning: 9, composite: 9.3, note: 'Mixed-precision MLX quant for GLM-5 with frontier-class coding quality. Still a 512GB-class Apple Silicon profile.' },
       },
       {
         key: 'llama4-scout-q4',
@@ -1285,27 +1299,31 @@
 
     function appendDerivedQuantizedProfiles(profiles) {
       const baseQ4 = profiles.filter((p) => /-q4$/i.test(p.key));
+      const existingKeys = new Set(profiles.map((p) => p.key));
       const derived = [];
       baseQ4.forEach((p) => {
-        const q8 = {
-          ...p,
-          key: p.key.replace(/-q4$/i, '-q8'),
-          label: p.label.replace(/·\s*Q4\b/i, '· Q8'),
-          memoryRequiredGb: Math.round((p.memoryRequiredGb || 0) * 2),
-          throughput: Object.fromEntries(
-            Object.entries(p.throughput || {}).map(([k, v]) => [k, Math.round((v || 0) * 0.5)])
-          ),
-          benchmarkNote: 'Derived from Q4 throughput using Apple Silicon memory-bandwidth scaling (~0.5× Q4 tok/s).',
-          usefulness: {
-            ...(p.usefulness || {}),
-            note: `${p.usefulness?.note || 'Q8 profile.'} [Q8 derived from Q4 by bandwidth ratio]`,
-          },
-        };
-        derived.push(q8);
-        if (F16_ALLOWLIST_KEYS.has(p.key)) {
+        const q8Key = p.key.replace(/-q4$/i, '-q8');
+        if (!existingKeys.has(q8Key)) {
           derived.push({
             ...p,
-            key: p.key.replace(/-q4$/i, '-f16'),
+            key: q8Key,
+            label: p.label.replace(/·\s*Q4\b/i, '· Q8'),
+            memoryRequiredGb: Math.round((p.memoryRequiredGb || 0) * 2),
+            throughput: Object.fromEntries(
+              Object.entries(p.throughput || {}).map(([k, v]) => [k, Math.round((v || 0) * 0.5)])
+            ),
+            benchmarkNote: 'Derived from Q4 throughput using Apple Silicon memory-bandwidth scaling (~0.5× Q4 tok/s).',
+            usefulness: {
+              ...(p.usefulness || {}),
+              note: `${p.usefulness?.note || 'Q8 profile.'} [Q8 derived from Q4 by bandwidth ratio]`,
+            },
+          });
+        }
+        const f16Key = p.key.replace(/-q4$/i, '-f16');
+        if (F16_ALLOWLIST_KEYS.has(p.key) && !existingKeys.has(f16Key)) {
+          derived.push({
+            ...p,
+            key: f16Key,
             label: p.label.replace(/·\s*Q4\b/i, '· F16'),
             memoryRequiredGb: Math.round((p.memoryRequiredGb || 0) * 4),
             throughput: Object.fromEntries(
@@ -1323,8 +1341,6 @@
     }
 
     function normalizeQuantizedProfiles(profiles) {
-      const hasExplicitQ8OrF16 = profiles.some((p) => /-(q8|f16)$/i.test(p.key));
-      if (hasExplicitQ8OrF16) return profiles;
       return appendDerivedQuantizedProfiles(profiles);
     }
 
