@@ -65,6 +65,26 @@
       "title": "Awni Hannun — GLM-5 on 512GB M3 Ultra",
       "url": "https://x.com/awnihannun/status/2022007608811696158",
       "note": "Community MLX run reporting ~15.4 tok/s and ~419GB memory on a single 512GB M3 Ultra"
+    },
+    {
+      "title": "Unsloth — Kimi K2 Thinking how to run locally (GGUF sizes; 1.8-bit min ~247GB combined for usable speed)",
+      "url": "https://unsloth.ai/docs/models/tutorials/kimi-k2-thinking-how-to-run-locally",
+      "note": "Q4 Thinking GGUF is hundreds of GB; not a 128GB Mac Studio workload"
+    },
+    {
+      "title": "Hugging Face — unsloth/Kimi-K2-Thinking-GGUF (Q4_K_M and other quants)",
+      "url": "https://huggingface.co/unsloth/Kimi-K2-Thinking-GGUF",
+      "note": "Shard-level public sizes for Unsloth Q4 and smaller dynamic quants"
+    },
+    {
+      "title": "Hugging Face — mlx-community (popular MLX conversions)",
+      "url": "https://huggingface.co/mlx-community",
+      "note": "Qwen3.5, GLM-4.7 Flash, gpt-oss-20B MXFP4, etc. — some rows use HF file-size hints for RAM gates"
+    },
+    {
+      "title": "Hugging Face — Qwen3.5-27B Claude distillation (original)",
+      "url": "https://huggingface.co/mlx-community/Qwen3.5-27B-Claude-4.6-Opus-Distilled-MLX-4bit",
+      "note": "Distilled 27B text model; 4bit MLX"
     }
   ],
   "localModelProfiles": [
@@ -144,6 +164,136 @@
         "reasoning": 8,
         "composite": 8.0,
         "note": "Qwen3 30B-A3B: MoE efficiency delivers frontier-quality output at near-small-model speeds. 91.0 ArenaHard score; strong coding and reasoning. Exceptional value."
+      }
+    },
+    {
+      "key": "qwen35-27b-claude46-opus-mlx-q4",
+      "label": "Qwen3.5 27B (Claude 4.6 Opus dist.) · Q4",
+      "memoryRequiredGb": 17,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 33,
+        "m4pro-14-20": 40,
+        "m4max-14-32": 48,
+        "m4max-16-40": 55,
+        "m3ultra-28-60": 72,
+        "m3ultra-32-80": 79,
+        "m5-10-10": 19,
+        "m5pro-15-16": 37,
+        "m5max-18-32": 55,
+        "m5max-18-40": 62
+      },
+      "benchmarkNote": "Hugging Face `mlx-community/Qwen3.5-27B-Claude-4.6-Opus-Distilled-MLX-4bit`. Throughput profile aligned to Gemma 3 27B class (same ~17GB 4bit band as this site’s Gemma 3 row) — not an independent lab benchmark run.",
+      "usefulness": {
+        "arena": 7,
+        "coding": 8,
+        "reasoning": 7,
+        "composite": 7.6,
+        "note": "Distilled toward Claude Opus 4.6 behaviour; strong for coding and instruction following. Popular on the MLX hub."
+      }
+    },
+    {
+      "key": "jiunsong-supergemma4-26b-uncensored-mlx-q4",
+      "label": "SuperGemma4 26B (Jiunsong) · Q4",
+      "memoryRequiredGb": 16,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 35,
+        "m4pro-14-20": 42,
+        "m4max-14-32": 50,
+        "m4max-16-40": 57,
+        "m3ultra-28-60": 74,
+        "m3ultra-32-80": 81,
+        "m5-10-10": 20,
+        "m5pro-15-16": 38,
+        "m5max-18-32": 57,
+        "m5max-18-40": 64
+      },
+      "benchmarkNote": "Hugging Face `Jiunsong/supergemma4-26b-uncensored-mlx-4bit-v2`. 26B ≈1GB lighter than 27B in RAM gate; tok/s nudged vs Gemma 3 27B — illustrative.",
+      "usefulness": {
+        "arena": 7,
+        "coding": 7,
+        "reasoning": 7,
+        "composite": 7.0,
+        "note": "Gemma-4 family uncensored MLX build; use case–dependent quality. High HF traction."
+      }
+    },
+    {
+      "key": "qwen35-9b-mlx-q4",
+      "label": "Qwen3.5 9B · Q4",
+      "memoryRequiredGb": 7,
+      "throughput": {
+        "m4-10-10": 32,
+        "m4pro-12-16": 50,
+        "m4pro-14-20": 60,
+        "m4max-14-32": 70,
+        "m4max-16-40": 80,
+        "m3ultra-28-60": 104,
+        "m3ultra-32-80": 112,
+        "m5-10-10": 26,
+        "m5pro-15-16": 50,
+        "m5max-18-32": 78,
+        "m5max-18-40": 86
+      },
+      "benchmarkNote": "Hugging Face `mlx-community/Qwen3.5-9B-MLX-4bit` (multimodal repo; text tok/s here ignores vision tower overhead). Slightly higher tok/s than Qwen 2.5 14B in this model’s weight class on Apple Silicon in practice — scaled from 14B row.",
+      "usefulness": {
+        "arena": 6,
+        "coding": 6,
+        "reasoning": 6,
+        "composite": 6.2,
+        "note": "Compact Qwen3.5; good for fast local chat on 16–24GB machines."
+      }
+    },
+    {
+      "key": "glm-47-flash-mlx-q4",
+      "label": "GLM-4.7 Flash · Q4",
+      "memoryRequiredGb": 18,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 64,
+        "m4pro-14-20": 76,
+        "m4max-14-32": 88,
+        "m4max-16-40": 96,
+        "m3ultra-28-60": 123,
+        "m3ultra-32-80": 136,
+        "m5-10-10": 35,
+        "m5pro-15-16": 71,
+        "m5max-18-32": 101,
+        "m5max-18-40": 110
+      },
+      "benchmarkNote": "Hugging Face `mlx-community/GLM-4.7-Flash-4bit` — HF lists ~16.9GB. MoE-lite Z.ai Flash; tok/s nudged below Qwen3 30B-A3B row (smaller on-disk but similar tier).",
+      "usefulness": {
+        "arena": 7,
+        "coding": 7,
+        "reasoning": 7,
+        "composite": 7.2,
+        "note": "Z.ai GLM-4.7 Flash: low-latency agentic stack; strong zh/en. Popular MLX drop."
+      }
+    },
+    {
+      "key": "gpt-oss-20b-mxfp4-mlx",
+      "label": "OpenAI gpt-oss-20B · MXFP4 (MLX)",
+      "memoryRequiredGb": 14,
+      "throughput": {
+        "m4-10-10": 10,
+        "m4pro-12-16": 20,
+        "m4pro-14-20": 24,
+        "m4max-14-32": 42,
+        "m4max-16-40": 46,
+        "m3ultra-28-60": 61,
+        "m3ultra-32-80": 67,
+        "m5-10-10": 12,
+        "m5pro-15-16": 22,
+        "m5max-18-32": 48,
+        "m5max-18-40": 51
+      },
+      "benchmarkNote": "Hugging Face `mlx-community/gpt-oss-20b-MXFP4-Q8` (repo name; ~12.1GB MLX file, 21B params). MXFP4 is not a separate Q4/Q8 row here — single profile. Scaled from 32B-class DeepSeek R1 row toward faster 20B — validate with mlx_lm on your box.",
+      "usefulness": {
+        "arena": 8,
+        "coding": 8,
+        "reasoning": 8,
+        "composite": 8.0,
+        "note": "Open-weights gpt-oss-20B with hybrid reasoning channels; one of the most downloaded MLX text repos."
       }
     },
     {
@@ -357,21 +507,21 @@
     {
       "key": "kimi-k2-thinking-q4",
       "label": "Kimi K2 Thinking · Q4",
-      "memoryRequiredGb": 120,
+      "memoryRequiredGb": 590,
       "throughput": {
         "m4-10-10": 0,
         "m4pro-12-16": 0,
         "m4pro-14-20": 0,
         "m4max-14-32": 0,
-        "m4max-16-40": 1,
-        "m3ultra-28-60": 2,
-        "m3ultra-32-80": 3,
+        "m4max-16-40": 0,
+        "m3ultra-28-60": 6,
+        "m3ultra-32-80": 7,
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 1
+        "m5max-18-40": 0
       },
-      "benchmarkNote": "Moonshot Kimi K2–class; memory and speed vary by quant and build. M5 Max 40c (128GB) can just load this (tight headroom). Treat as frontier-tier — validate on your stack.",
+      "benchmarkNote": "Unsloth / community Q4_GGUF (e.g. Q4_K_M) is ~580–600GB on disk — a Mac Studio M4 Max 128GB cannot load this checkpoint. Native INT4 (QAT) is still data-center class in practice. M3 Ultra numbers are order-of-magnitude per-node in a 4× Mac Studio (M3 Ultra) exo/MLX cluster reporting ~25–28 tok/s aggregate (e.g. Virge, Jeff Geerling, Creative Strategies — not a lab single-node M4 Max bench). Simplismart’s ~173 tok/s is 8× NVIDIA B200, not Apple Silicon. For smaller Unsloth quants (e.g. UD-TQ1_0 ≈230GB) Unsloth cites ~1–2 tok/s with 256GB RAM and heavy offload, or 5+ tok/s with ≥247GB combined — not modeled on this Q4 row.",
       "usefulness": {
         "arena": 8,
         "coding": 9,
@@ -721,21 +871,21 @@
     {
       "key": "kimi-k2-thinking-q8",
       "label": "Kimi K2 Thinking · Q8",
-      "memoryRequiredGb": 240,
+      "memoryRequiredGb": 1160,
       "throughput": {
         "m4-10-10": 0,
         "m4pro-12-16": 0,
         "m4pro-14-20": 0,
         "m4max-14-32": 0,
-        "m4max-16-40": 1,
-        "m3ultra-28-60": 1,
-        "m3ultra-32-80": 2,
+        "m4max-16-40": 0,
+        "m3ultra-28-60": 3,
+        "m3ultra-32-80": 4,
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 1
+        "m5max-18-40": 0
       },
-      "benchmarkNote": "Q8 row derived from Q4 throughput. Practical operation is generally cluster-class.",
+      "benchmarkNote": "Q8 row: memory scaled ~2× Q4 (≈1.1TB-class); tok/s ≈ half the Q4 per-node cluster placeholders. Not a measured MLX row — no single-Mac config holds this footprint.",
       "usefulness": {
         "arena": 8,
         "coding": 9,

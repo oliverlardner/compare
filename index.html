@@ -94,6 +94,13 @@
       color: var(--muted);
       margin: 0;
     }
+    .hero-oss {
+      max-width: 860px;
+      margin: 1rem 0 0;
+      font-size: 0.95em;
+      line-height: 1.5;
+      color: var(--muted);
+    }
     .grid {
       display: grid;
       grid-template-columns: 1.2fr .8fr;
@@ -673,6 +680,9 @@
         This page estimates the break-even point between running a local model on your own Apple hardware and paying per token for cloud models like OpenAI and Claude.
         It is intentionally simple: hardware cost + electricity on one side, token spend on the other. Edit the assumptions until they match your actual workflow.
       </p>
+      <p class="hero-oss">
+        <a href="https://github.com/oliverlardner/compare" rel="noopener noreferrer" target="_blank">Source on GitHub</a> — if you spot a mistake or want to improve the numbers or copy, open a pull request or issue.
+      </p>
     </section>
 
     <div class="tabs" role="tablist" aria-label="Main sections">
@@ -994,6 +1004,14 @@
     const TIGHT_HEADROOM_GB = 2;
     /* Cluster sharding is not perfect; reserve part of pooled RAM for runtime overhead/duplication. */
     const CLUSTER_RAM_EFFICIENCY = 0.85;
+    /* Thunderbolt / distributed inference (e.g. exo) can link a small number of MacBooks; 2–3 is the practical range — we cap MBP at 3. */
+    const MBP_MAX_CLUSTER = 3;
+
+    function stackCountForDevice(device, n) {
+      const stack = Math.max(1, n);
+      if (device === 'MBP') return Math.min(stack, MBP_MAX_CLUSTER);
+      return stack;
+    }
 
     /* Returns { fits, tight, clusterOnly, headroom, pooledHeadroom, pooledUsableGb }.
        - tight is only for single-node swap risk.
@@ -1135,6 +1153,128 @@
       svg.innerHTML = parts.join('');
     }
 
+    let activeTabKey = 'master';
+    let suppressUrlStateSync = false;
+
+    function getActiveTabKey() {
+      return activeTabKey;
+    }
+
+    function setSelectValue(id, value) {
+      const el = $(id);
+      if (!el || value == null) return;
+      const nextValue = String(value);
+      if ([...el.options].some((opt) => opt.value === nextValue)) {
+        el.value = nextValue;
+      }
+    }
+
+    function setInputValue(id, value) {
+      const el = $(id);
+      if (!el || value == null) return;
+      el.value = String(value);
+    }
+
+    function syncUrlState() {
+      if (suppressUrlStateSync) return;
+      const params = new URLSearchParams();
+      params.set('tab', getActiveTabKey());
+
+      [
+        ['mv', 'miniVariant'],
+        ['mm', 'miniMemory'],
+        ['ms', 'miniStorage'],
+        ['me', 'miniEthernet'],
+        ['sc', 'stackCount'],
+        ['lm', 'localModelProfile'],
+        ['hm', 'heatmapModelProfile'],
+        ['hh', 'heatmapHoursPerDay'],
+        ['up', 'utilizationPct'],
+        ['io', 'inputOutputRatio'],
+        ['hn', 'hardwareName'],
+        ['hc', 'hardwareCost'],
+        ['aw', 'avgWatts'],
+        ['er', 'electricityRate'],
+        ['hd', 'hoursPerDay'],
+        ['dm', 'daysPerMonth'],
+        ['om', 'otherMonthly'],
+        ['mn', 'modelName'],
+        ['ic', 'inputCost'],
+        ['oc', 'outputCost'],
+        ['ti', 'tokensInPerDay'],
+        ['to', 'tokensOutPerDay'],
+        ['cd', 'cloudDaysPerMonth'],
+        ['cur', 'displayCurrency'],
+        ['fx', 'usdToAud'],
+      ].forEach(([key, id]) => {
+        const el = $(id);
+        if (el && el.value !== '') params.set(key, el.value);
+      });
+
+      const search = params.toString();
+      const nextUrl = `${location.pathname}${search ? `?${search}` : ''}${location.hash}`;
+      history.replaceState(null, '', nextUrl);
+    }
+
+    function applyUrlState() {
+      const params = new URLSearchParams(location.search);
+      if (!params.toString()) return;
+
+      suppressUrlStateSync = true;
+
+      [
+        ['hn', 'hardwareName'],
+        ['hc', 'hardwareCost'],
+        ['aw', 'avgWatts'],
+        ['er', 'electricityRate'],
+        ['hd', 'hoursPerDay'],
+        ['dm', 'daysPerMonth'],
+        ['om', 'otherMonthly'],
+        ['mn', 'modelName'],
+        ['ic', 'inputCost'],
+        ['oc', 'outputCost'],
+        ['ti', 'tokensInPerDay'],
+        ['to', 'tokensOutPerDay'],
+        ['cd', 'cloudDaysPerMonth'],
+        ['fx', 'usdToAud'],
+      ].forEach(([key, id]) => {
+        if (params.has(key)) setInputValue(id, params.get(key));
+      });
+
+      if (params.has('cur')) setSelectValue('displayCurrency', params.get('cur'));
+      if (params.has('mv')) setSelectValue('miniVariant', params.get('mv'));
+      updateMiniSelectorOptions();
+
+      if (params.has('mm')) setSelectValue('miniMemory', params.get('mm'));
+      if (params.has('ms')) setSelectValue('miniStorage', params.get('ms'));
+      if (params.has('me')) setSelectValue('miniEthernet', params.get('me'));
+      if (params.has('lm')) setSelectValue('localModelProfile', params.get('lm'));
+      if (params.has('hm')) setSelectValue('heatmapModelProfile', params.get('hm'));
+      if (params.has('hh')) setInputValue('heatmapHoursPerDay', params.get('hh'));
+      if (params.has('up')) setInputValue('utilizationPct', params.get('up'));
+      if (params.has('io')) setInputValue('inputOutputRatio', params.get('io'));
+
+      if (params.has('sc')) {
+        setSelectValue('stackCount', params.get('sc'));
+      }
+      syncStackCount('stackCount');
+
+      refreshCurrencyLabels();
+      calculate();
+      renderMiniSelection();
+      renderThroughputEstimate();
+      renderHeatmap();
+      renderMasterTable();
+
+      const tab = params.get('tab');
+      if (tab === 'apple' || tab === 'calc' || tab === 'master') {
+        activateTab(tab);
+      }
+
+      suppressUrlStateSync = false;
+      syncUrlState();
+    }
+
     function initTabs() {
       const tabDefs = [
         { key: 'master', tabEl: $('tabMaster'), panelEl: $('panelMaster') },
@@ -1142,6 +1282,7 @@
         { key: 'calc',   tabEl: $('tabCalc'),   panelEl: $('panelCalc')   },
       ];
       function activate(key) {
+        activeTabKey = key;
         tabDefs.forEach((def, i) => {
           const active = def.key === key;
           def.tabEl.setAttribute('aria-selected', String(active));
@@ -1149,6 +1290,7 @@
           def.panelEl.hidden = !active;
           if (active) def.tabEl.focus();
         });
+        syncUrlState();
       }
       tabDefs.forEach((def) => def.tabEl.addEventListener('click', () => activate(def.key)));
       document.querySelector('[role="tablist"]').addEventListener('keydown', (e) => {
@@ -1201,6 +1343,41 @@
         memoryRequiredGb: 12,
         throughput: { 'm4-10-10': 0, 'm4pro-12-16': 72, 'm4pro-14-20': 86, 'm4max-14-32': 100, 'm4max-16-40': 110, 'm3ultra-28-60': 140, 'm3ultra-32-80': 155, 'm5-10-10': 40, 'm5pro-15-16': 81, 'm5max-18-32': 115, 'm5max-18-40': 124 },
         usefulness: { arena: 8, coding: 8, reasoning: 8, composite: 8.0, note: 'MoE efficiency: frontier-quality at near-small-model speeds. Exceptional value.' },
+      },
+      {
+        key: 'qwen35-27b-claude46-opus-mlx-q4',
+        label: 'Qwen3.5 27B (Claude 4.6 Opus dist.) · Q4',
+        memoryRequiredGb: 17,
+        throughput: { 'm4-10-10': 0, 'm4pro-12-16': 33, 'm4pro-14-20': 40, 'm4max-14-32': 48, 'm4max-16-40': 55, 'm3ultra-28-60': 72, 'm3ultra-32-80': 79, 'm5-10-10': 19, 'm5pro-15-16': 37, 'm5max-18-32': 55, 'm5max-18-40': 62 },
+        usefulness: { arena: 7, coding: 8, reasoning: 7, composite: 7.6, note: 'Claude-style distillation on Qwen3.5; popular MLX hub drop.' },
+      },
+      {
+        key: 'jiunsong-supergemma4-26b-uncensored-mlx-q4',
+        label: 'SuperGemma4 26B (Jiunsong) · Q4',
+        memoryRequiredGb: 16,
+        throughput: { 'm4-10-10': 0, 'm4pro-12-16': 35, 'm4pro-14-20': 42, 'm4max-14-32': 50, 'm4max-16-40': 57, 'm3ultra-28-60': 74, 'm3ultra-32-80': 81, 'm5-10-10': 20, 'm5pro-15-16': 38, 'm5max-18-32': 57, 'm5max-18-40': 64 },
+        usefulness: { arena: 7, coding: 7, reasoning: 7, composite: 7.0, note: 'Gemma-4 family uncensored build; very high Hugging Face downloads for an MLX 26B.' },
+      },
+      {
+        key: 'qwen35-9b-mlx-q4',
+        label: 'Qwen3.5 9B · Q4',
+        memoryRequiredGb: 7,
+        throughput: { 'm4-10-10': 32, 'm4pro-12-16': 50, 'm4pro-14-20': 60, 'm4max-14-32': 70, 'm4max-16-40': 80, 'm3ultra-28-60': 104, 'm3ultra-32-80': 112, 'm5-10-10': 26, 'm5pro-15-16': 50, 'm5max-18-32': 78, 'm5max-18-40': 86 },
+        usefulness: { arena: 6, coding: 6, reasoning: 6, composite: 6.2, note: 'Compact Qwen3.5; fast on 16–24GB. Multimodal repo — text path only in this table.' },
+      },
+      {
+        key: 'glm-47-flash-mlx-q4',
+        label: 'GLM-4.7 Flash · Q4',
+        memoryRequiredGb: 18,
+        throughput: { 'm4-10-10': 0, 'm4pro-12-16': 64, 'm4pro-14-20': 76, 'm4max-14-32': 88, 'm4max-16-40': 96, 'm3ultra-28-60': 123, 'm3ultra-32-80': 136, 'm5-10-10': 35, 'm5pro-15-16': 71, 'm5max-18-32': 101, 'm5max-18-40': 110 },
+        usefulness: { arena: 7, coding: 7, reasoning: 7, composite: 7.2, note: 'Z.ai GLM-4.7 Flash MoE-lite; strong bilingual agentic use.' },
+      },
+      {
+        key: 'gpt-oss-20b-mxfp4-mlx',
+        label: 'OpenAI gpt-oss-20B · MXFP4 (MLX)',
+        memoryRequiredGb: 14,
+        throughput: { 'm4-10-10': 10, 'm4pro-12-16': 20, 'm4pro-14-20': 24, 'm4max-14-32': 42, 'm4max-16-40': 46, 'm3ultra-28-60': 61, 'm3ultra-32-80': 67, 'm5-10-10': 12, 'm5pro-15-16': 22, 'm5max-18-32': 48, 'm5max-18-40': 51 },
+        usefulness: { arena: 8, coding: 8, reasoning: 8, composite: 8.0, note: 'Open-weights gpt-oss-20B; hybrid reasoning. Hugging Face busiest MLX text repos in 2025–26.' },
       },
       {
         key: 'llama31-8b-q4',
@@ -1261,8 +1438,8 @@
       {
         key: 'kimi-k2-thinking-q4',
         label: 'Kimi K2 Thinking · Q4',
-        memoryRequiredGb: 120,
-        throughput: { 'm4-10-10': 0, 'm4pro-12-16': 0, 'm4pro-14-20': 0, 'm4max-14-32': 0, 'm4max-16-40': 1, 'm3ultra-28-60': 2, 'm3ultra-32-80': 3, 'm5-10-10': 0, 'm5pro-15-16': 0, 'm5max-18-32': 0, 'm5max-18-40': 1 },
+        memoryRequiredGb: 590,
+        throughput: { 'm4-10-10': 0, 'm4pro-12-16': 0, 'm4pro-14-20': 0, 'm4max-14-32': 0, 'm4max-16-40': 0, 'm3ultra-28-60': 6, 'm3ultra-32-80': 7, 'm5-10-10': 0, 'm5pro-15-16': 0, 'm5max-18-32': 0, 'm5max-18-40': 0 },
         usefulness: { arena: 8, coding: 9, reasoning: 9, composite: 8.7, note: 'Exceptional coding and long-context reasoning; emerging community favourite.' },
       },
       {
@@ -1536,15 +1713,21 @@
       }
       const { item, memory, storage, ethernet, totalAud } = cfg;
       const n = getStackCount();
-      const stackTotal = totalAud * n;
+      const dev = item.label.startsWith('MacBook Pro') ? 'MBP' : item.label.startsWith('Mac mini') ? 'mini' : 'Studio';
+      const nEff = stackCountForDevice(dev, n);
+      const stackTotal = totalAud * nEff;
+      const cappedMbp = dev === 'MBP' && n > MBP_MAX_CLUSTER;
       $('miniPriceLabel').textContent =
-        n === 1 ? 'Selected config — Apple AU' : `Selected stack — Apple AU (${n}× identical machines)`;
+        nEff === 1 ? 'Selected config — Apple AU' : `Selected stack — Apple AU (${nEff}× identical machines${cappedMbp ? ' · laptop cluster cap' : ''})`;
       $('miniPriceAud').textContent = fmtAUD(stackTotal);
       const rwNote = memory.realWorldNote || item.realWorldNote || '';
       const isMbpItem = item.label.startsWith('MacBook Pro');
       const connLine = isMbpItem ? `${escHtml(memory.label)} · ${escHtml(storage.label)}` : `${escHtml(memory.label)} · ${escHtml(storage.label)} · ${escHtml(ethernet.label)}`;
       const ethernetBreakdown = isMbpItem ? '' : ` + Ethernet ${fmtAUD(ethernet.delta)}`;
-      $('miniBreakdown').innerHTML = `${escHtml(item.label)}<br />${connLine}<br />Unit ${fmtAUD(totalAud)} · Stack total ${fmtAUD(stackTotal)} (${n}×)<br />Base ${fmtAUD(item.basePriceAud)} + memory ${fmtAUD(memory.delta)} + storage ${fmtAUD(storage.delta)}${ethernetBreakdown}${rwNote ? `<br /><span class="warning-text" style="font-size:12px;font-weight:400;">⚠ ${escHtml(rwNote)}</span>` : ''}`;
+      const capLine = cappedMbp
+        ? `<br /><span class="note" style="font-size:12px;">MacBook Pro cluster uses min(N, ${MBP_MAX_CLUSTER}) for price and throughput (Thunderbolt / exo — often 2–3 machines).</span>`
+        : '';
+      $('miniBreakdown').innerHTML = `${escHtml(item.label)}<br />${connLine}<br />Unit ${fmtAUD(totalAud)} · Stack total ${fmtAUD(stackTotal)} (${nEff}×)${cappedMbp ? ` <span class="note">(N=${n} → ${nEff}× for laptop)</span>` : ''}<br />Base ${fmtAUD(item.basePriceAud)} + memory ${fmtAUD(memory.delta)} + storage ${fmtAUD(storage.delta)}${ethernetBreakdown}${capLine}${rwNote ? `<br /><span class="warning-text" style="font-size:12px;font-weight:400;">⚠ ${escHtml(rwNote)}</span>` : ''}`;
     }
 
 
@@ -1563,24 +1746,26 @@
       }
       const { item, memory } = cfg;
       const n = getStackCount();
+      const dev = item.label.startsWith('MacBook Pro') ? 'MBP' : item.label.startsWith('Mac mini') ? 'mini' : 'Studio';
+      const nEff = stackCountForDevice(dev, n);
       const profile = localModelProfiles[parseInt($('localModelProfile').value || '0', 10)] || localModelProfiles[0];
       const memoryGb = parseMemoryGb(memory.label);
       const tps = profile.throughput[item.variant] || 0;
-      const speedup = clusterSpeedup(n);
+      const speedup = clusterSpeedup(nEff);
       const aggTps = tps * speedup;
       const hoursPerDay = parseFloat($('hoursPerDay').value) || 0;
       const tokensPerDay = aggTps * 3600 * hoursPerDay;
-      const fit = ramFeasibility(memoryGb, profile.memoryRequiredGb, n);
+      const fit = ramFeasibility(memoryGb, profile.memoryRequiredGb, nEff);
       const fitsRam = fit.fits;
       const tight = fit.tight;
       const feasible = fitsRam && tps > 0;
       const headroom = fit.headroom;
 
       $('throughputTps').textContent = feasible
-        ? (n > 1 ? `${fmtNum(aggTps)} tok/s combined` : `${fmtNum(tps)} tok/s`)
+        ? (nEff > 1 ? `${fmtNum(aggTps)} tok/s combined` : `${fmtNum(tps)} tok/s`)
         : 'Not practical';
       $('throughputDaily').textContent = feasible
-        ? `At ${hoursPerDay} hours/day, ~${fmtNum(tokensPerDay)} combined output tokens/day${n > 1 ? ` (${fmtNum(tps)} tok/s/machine × ${speedup.toFixed(2)}× cluster speedup)` : ''}.`
+        ? `At ${hoursPerDay} hours/day, ~${fmtNum(tokensPerDay)} combined output tokens/day${nEff > 1 ? ` (${fmtNum(tps)} tok/s/machine × ${speedup.toFixed(2)}× cluster speedup)` : ''}.`
         : `This config likely does not have enough practical memory headroom for ${profile.label}.`;
       const benchNote = profile.benchmarkNote
         ? `<span class="note"><br />${escHtml(profile.benchmarkNote)}</span>`
@@ -1589,7 +1774,7 @@
         ? `<br /><span class="warning-text">⚠ Swap risk:</span> only ~${headroom}GB of headroom after the model loads and macOS takes its ~${OS_OVERHEAD_GB}GB share. Any other running apps (browser, etc.) will push this into swap, causing severe slowdowns.`
         : '';
       const clusterOnlyNote = feasible && fit.clusterOnly
-        ? `<br /><span class="pill">Cluster-only fit at N=${n}</span> pooled usable RAM ≈ ${fit.pooledUsableGb.toFixed(1)}GB (${(CLUSTER_RAM_EFFICIENCY * 100).toFixed(0)}% efficiency assumption).`
+        ? `<br /><span class="pill">Cluster-only fit at N=${nEff}</span> pooled usable RAM ≈ ${fit.pooledUsableGb.toFixed(1)}GB (${(CLUSTER_RAM_EFFICIENCY * 100).toFixed(0)}% efficiency assumption).`
         : '';
       $('throughputFeasibility').innerHTML = feasible
         ? `Cluster speedup uses S(N)=N^${clusterBeta().toFixed(2)} (β fitted to published 2- and 4-node exo tensor-parallel reports; see chart). Not your workload — illustration only. Example build: <a href="https://youtu.be/Ju0ndy2kwlw" target="_blank" rel="noopener noreferrer">NetworkChuck — 5× Mac Studios</a>.${benchNote}${tightWarning}${clusterOnlyNote}`
@@ -1613,7 +1798,6 @@
       }
 
       const n = getStackCount();
-      const speedup = clusterSpeedup(n);
 
       /* Parse "16GB" → 16 */
       const parseGb = (label) => parseInt(label, 10) || 0;
@@ -1625,20 +1809,21 @@
         const gpuMatch = v.label.match(/(\d+)-core GPU/);
         const chipMatch = v.label.match(/(M\d[\w\s]*?)\s*·\s*\d+-core CPU/);
         const device = v.label.startsWith('Mac mini') ? 'mini' : v.label.startsWith('MacBook Pro') ? 'MBP' : 'Studio';
-        const clusterable = device !== 'MBP';
         const chip = chipMatch ? chipMatch[1].trim() : '';
         const cores = cpuMatch && gpuMatch ? `${cpuMatch[1]}c/${gpuMatch[1]}c` : '';
 
         v.memoryOptions.forEach((mem) => {
-          /* MacBook Pros can't form clusters — always price and throughput as a single machine */
-          const colN = clusterable ? n : 1;
-          const colSpeedup = clusterable ? speedup : 1;
+          const colN = stackCountForDevice(device, n);
+          const colSpeedup = clusterSpeedup(colN);
+          const isPortable = device === 'MBP';
+          const laptopClusterCapped = isPortable && n > MBP_MAX_CLUSTER;
           const price = (v.basePriceAud + mem.delta + v.storageOptions[0].delta + v.ethernetOptions[0].delta) * colN;
           cols.push({
             variant: v.variant,
             chip: v.chip,
             device,
-            clusterable,
+            isPortable,
+            laptopClusterCapped,
             colN,
             colSpeedup,
             chipShort: chip,
@@ -1663,10 +1848,9 @@
       };
 
       /* Effective tok/s for a (profile, col) pair — 0 if RAM insufficient.
-         Non-clusterable columns (MacBook Pro) always use speedup=1 regardless of stack setting. */
+         MacBook Pro columns use colN = min(N,3) for pooled RAM, price, and cluster speedup. */
       const effectiveTps = (profile, col) => {
-        const colStackCount = col.clusterable ? n : 1;
-        if (!ramFeasibility(col.ramGb, profile.memoryRequiredGb, colStackCount).fits) return 0;
+        if (!ramFeasibility(col.ramGb, profile.memoryRequiredGb, col.colN).fits) return 0;
         const raw = profile.throughput[col.variant] || 0;
         return raw > 0 ? raw * col.colSpeedup : 0;
       };
@@ -1703,15 +1887,15 @@
         });
       });
 
-      /* Portable winner: same scoring but restricted to MacBook Pro (non-clusterable) columns */
+      /* Portable winner: same scoring but restricted to MacBook Pro columns */
       let portableWinnerKey = null;
       let portableWinnerColIdx = -1;
       let portableBestScore = -Infinity;
       localModelProfiles.forEach((profile) => {
         const composite = profile.usefulness?.composite ?? 5;
         cols.forEach((col, ci) => {
-          if (col.clusterable) return; // laptops only
-          const { tight } = ramFeasibility(col.ramGb, profile.memoryRequiredGb, 1);
+          if (col.device !== 'MBP') return;
+          const { tight } = ramFeasibility(col.ramGb, profile.memoryRequiredGb, col.colN);
           if (tight) return;
           const tps = effectiveTps(profile, col);
           if (tps < 5 || col.price <= 0) return;
@@ -1733,7 +1917,10 @@
       const parts = [];
 
       if (n > 1) {
-        parts.push(`<p class="mt-stack-note">Stack: ${n} machines · throughput scaled ×${speedup.toFixed(2)} (N<sup>${clusterBeta().toFixed(2)}</sup> curve) · prices ×${n}</p>`);
+        const deskSpeed = clusterSpeedup(n);
+        parts.push(
+          `<p class="mt-stack-note">Stack: ${n} selected · Mac mini &amp; Studio: ×${deskSpeed.toFixed(2)} throughput (N<sup>${clusterBeta().toFixed(2)}</sup> curve) and ×${n} price · MacBook Pro: min(N,${MBP_MAX_CLUSTER}) for throughput and price (Thunderbolt / exo — often 2–3 machines).</p>`
+        );
       }
 
       /* Legend */
@@ -1751,7 +1938,7 @@
         </div>
         <p class="sub" style="margin:0 0 12px;font-style:italic;font-size:12px;">
           ⚠ macOS uses ~6 GB of unified memory for the OS and background processes. Configs with &lt;8 GB headroom after loading a model are flagged as swap risk.
-          For large models, cluster-only fit is enabled when pooled RAM across N machines (at ${(CLUSTER_RAM_EFFICIENCY * 100).toFixed(0)}% usable efficiency) meets model memory.
+          For large models, cluster-only fit is enabled when pooled RAM across N machines (at ${(CLUSTER_RAM_EFFICIENCY * 100).toFixed(0)}% usable efficiency) meets model memory. MacBook Pro columns assume at most ${MBP_MAX_CLUSTER} machines in the chain (2–3 is typical).
         </p>
       `);
 
@@ -1765,9 +1952,11 @@
       parts.push('<th class="mt-col-mem" data-col="2" style="text-align:center;" title="Minimum RAM required to run this model at Q4">Needs</th>');
       cols.forEach((col, ci) => {
         const shortP = fmtAUD(col.price).replace('A$', '$').replace(',000', 'k');
-        const noClusterHint = !col.clusterable && n > 1 ? ' ⚠ laptop: single machine only' : '';
+        const noClusterHint = col.laptopClusterCapped ? ` · uses ${MBP_MAX_CLUSTER}× (laptop cap)` : '';
         const thTitle = `${col.fullLabel} · ${shortP}${noClusterHint}`;
-        const noClusterBadge = !col.clusterable && n > 1 ? '<span style="display:block;font-size:9px;color:var(--warn);letter-spacing:0;margin-top:2px;font-style:italic;">single only</span>' : '';
+        const noClusterBadge = col.laptopClusterCapped
+          ? '<span style="display:block;font-size:9px;color:var(--warn);letter-spacing:0;margin-top:2px;font-style:italic;">max 3×</span>'
+          : '';
         const thWinCls = ci === overallWinnerColIdx ? ' mt-th-overall' : ci === portableWinnerColIdx ? ' mt-th-portable' : '';
         parts.push(`<th class="mt-col-tps${thWinCls}" data-col="${ci + 3}" title="${escHtml(thTitle)}"><span class="mt-th-rotated">${escHtml(col.headerText)}${noClusterBadge}</span></th>`);
       });
@@ -1844,11 +2033,15 @@
           const clusterNote = fit.clusterOnly && adj > 0
             ? ` † Cluster-only fit at N=${col.colN} (pooled usable RAM ≈ ${fit.pooledUsableGb.toFixed(1)}GB)`
             : '';
-          const mbpNote = !col.clusterable && n > 1 ? ' · laptop — single machine only, cluster N/A' : '';
+          const mbpNote = col.laptopClusterCapped
+            ? ' · MacBook Pro cluster math uses 3 of N (laptop cap)'
+            : col.isPortable && col.colN > 1
+              ? ' · MacBook Pro cluster (illustrative)'
+              : '';
           const title = !fitsRam
             ? `${col.ramLabel} < ${profile.memoryRequiredGb}GB required — can't load model`
             : adj > 0
-              ? `${adj} tok/s${col.clusterable && n > 1 ? ` (${rawTps} × ${col.colSpeedup.toFixed(2)} cluster)` : ''}${isOverallWinner ? ' — Overall winner' : isPortableWinner ? ' — Best portable' : isPerWinner ? ' — Best entry point' : ''}${tightNote}${clusterNote}${mbpNote}`
+              ? `${adj} tok/s${col.colN > 1 ? ` (${rawTps} × ${col.colSpeedup.toFixed(2)} cluster)` : ''}${isOverallWinner ? ' — Overall winner' : isPortableWinner ? ' — Best portable' : isPerWinner ? ' — Best entry point' : ''}${tightNote}${clusterNote}${mbpNote}`
               : `Chip too slow / not enough RAM${mbpNote}`;
           const display = adj > 0 ? (fit.clusterOnly ? `${adj}†` : tight ? `${adj}~` : String(adj)) : '—';
 
@@ -1866,7 +2059,7 @@
           Usefulness score = average of Arena Elo rank (Chatbot Arena/LMSys), coding benchmarks (LiveCodeBench), and reasoning benchmarks — all normalised 1–10.
           Hover any score cell for sub-scores. Q8/F16 rows marked <strong>~est</strong> are derived from Q4 measurements using Apple Silicon memory-bandwidth scaling (Q8 ≈ 0.5× Q4 tok/s, F16 ≈ 0.25× Q4 tok/s).
           Cells marked <strong>†</strong> are cluster-only fits (model sharded across machines). Frontier models remain conservative placeholders.
-          <strong>Best portable</strong> is the highest-scoring MacBook Pro config by the same composite² × tok/s / price formula as the overall winner, evaluated independently across laptop columns only.
+          <strong>Best portable</strong> is the highest-scoring MacBook Pro config by the same composite² × tok/s / price formula as the overall winner, evaluated across laptop columns only (cluster math min(N,3) when N&gt;1).
         </p>
       `);
 
@@ -1882,9 +2075,14 @@
       }
 
       const n = getStackCount();
-      const speedup = clusterSpeedup(n);
-      $('heatmapStackHint').textContent = n > 1 ? `×${n} stack` : '';
-      $('heatmapPriceHint').textContent = n > 1 ? `×${n}` : '';
+      if (n > 1) {
+        $('heatmapStackHint').textContent =
+          n > MBP_MAX_CLUSTER ? `N=${n} (MacBook Pro rows: ${MBP_MAX_CLUSTER}× max)` : `×${n} stack`;
+        $('heatmapPriceHint').textContent = n > MBP_MAX_CLUSTER ? `MBP price ×${MBP_MAX_CLUSTER}` : `×${n}`;
+      } else {
+        $('heatmapStackHint').textContent = '';
+        $('heatmapPriceHint').textContent = '';
+      }
 
       /* Cloud pricing from the calculator panel */
       const inputCostUSD  = parseFloat($('inputCost').value)  || 0;
@@ -1928,19 +2126,22 @@
           item.storageOptions.forEach((storage) => {
             const ethernet = item.ethernetOptions[0];
             const unitAud  = item.basePriceAud + memory.delta + storage.delta + ethernet.delta;
-            const totalAud = unitAud * n;
+            const device = item.label.startsWith('Mac mini') ? 'mini' : item.label.startsWith('MacBook Pro') ? 'MBP' : 'Studio';
+            const nEff = stackCountForDevice(device, n);
+            const totalAud = unitAud * nEff;
 
             /* Electricity cost — based on hours machine is powered on (from calculator panel) */
-            const monthlyElectricity = ((item.wattsEstimate * n) / 1000) * elecHoursPerDay * daysPerMonth * electricityRate;
+            const monthlyElectricity = ((item.wattsEstimate * nEff) / 1000) * elecHoursPerDay * daysPerMonth * electricityRate;
             const monthlyLocal = monthlyElectricity + otherMonthly;
 
             /* Throughput capacity for the selected model on this variant */
             const memGb = parseInt(memory.label, 10) || 0;
-            const fit = ramFeasibility(memGb, profile.memoryRequiredGb, n);
+            const fit = ramFeasibility(memGb, profile.memoryRequiredGb, nEff);
             const fitsRam = fit.fits;
             const tightRam = fit.tight;
             const rawTps  = fitsRam ? (profile.throughput[item.variant] || 0) : 0;
-            const effectiveTps = rawTps * speedup;
+            const rowSpeedup = clusterSpeedup(nEff);
+            const effectiveTps = rawTps * rowSpeedup;
             const canRun = fitsRam && effectiveTps > 0;
 
             let monthlySavings, breakEvenText, verdict, savingsDisplay;
@@ -1975,8 +2176,9 @@
               verdict = { label: verdict.label + ' † cluster-only fit', cls: 'heat-warn' };
             }
 
+            const capLabel = device === 'MBP' && n > nEff ? ' (laptop stack cap)' : '';
             rows.push({
-              label: `${item.label} · ${memory.label} · ${storage.label}${n > 1 ? ` · ×${n}` : ''}`,
+              label: `${item.label} · ${memory.label} · ${storage.label}${nEff > 1 ? ` · ×${nEff}` : ''}${capLabel}`,
               totalAud,
               breakEvenText,
               monthlySavings,
@@ -2017,15 +2219,18 @@
       if (!cfg) return;
       const { item, memory, storage, ethernet, totalAud } = cfg;
       const n = getStackCount();
-      $('hardwareName').value = `${item.label} · ${memory.label} · ${storage.label} · ${ethernet.label}${n > 1 ? ` · ×${n} stack` : ''}`;
-      $('hardwareCost').value = totalAud * n;
-      $('avgWatts').value = item.wattsEstimate * n;
+      const dev = item.label.startsWith('MacBook Pro') ? 'MBP' : item.label.startsWith('Mac mini') ? 'mini' : 'Studio';
+      const nEff = stackCountForDevice(dev, n);
+      $('hardwareName').value = `${item.label} · ${memory.label} · ${storage.label} · ${ethernet.label}${nEff > 1 ? ` · ×${nEff} stack` : ''}${dev === 'MBP' && n > nEff ? ' (laptop cap)' : ''}`;
+      $('hardwareCost').value = totalAud * nEff;
+      $('avgWatts').value = item.wattsEstimate * nEff;
       if (currencyCode() !== 'AUD') $('displayCurrency').value = 'AUD';
       refreshCurrencyLabels();
       calculate();
       renderThroughputEstimate();
       renderHeatmap();
       activateTab('calc');
+      syncUrlState();
     }
 
 
@@ -2066,6 +2271,8 @@
         if (el) el.value = value;
       });
       calculate();
+      renderHeatmap();
+      syncUrlState();
     }
 
     function calculate() {
@@ -2126,36 +2333,44 @@
     }
 
     $('panelCalc').querySelectorAll('input').forEach((el) =>
-      el.addEventListener('input', () => { calculate(); renderHeatmap(); })
+      el.addEventListener('input', () => { calculate(); renderHeatmap(); syncUrlState(); })
     );
     $('panelCalc').querySelectorAll('select').forEach((el) =>
-      el.addEventListener('input', () => { calculate(); renderHeatmap(); })
+      el.addEventListener('input', () => { calculate(); renderHeatmap(); syncUrlState(); })
     );
     document.querySelectorAll('[data-hw]').forEach((btn) => btn.addEventListener('click', () => applyPreset(hardwarePresets, btn.dataset.hw)));
     document.querySelectorAll('[data-model]').forEach((btn) => btn.addEventListener('click', () => applyPreset(modelPresets, btn.dataset.model)));
-    $('miniVariant').addEventListener('input', updateMiniSelectorOptions);
-    $('displayCurrency').addEventListener('input', () => { refreshCurrencyLabels(); calculate(); renderMiniSelection(); renderHeatmap(); });
-    $('usdToAud').addEventListener('input', () => { calculate(); renderMiniSelection(); renderHeatmap(); });
-    $('miniMemory').addEventListener('input', () => { renderMiniSelection(); renderThroughputEstimate(); renderHeatmap(); });
-    $('miniStorage').addEventListener('input', () => { renderMiniSelection(); renderHeatmap(); });
-    $('miniEthernet').addEventListener('input', () => { renderMiniSelection(); renderHeatmap(); });
-    $('localModelProfile').addEventListener('input', renderThroughputEstimate);
-    $('heatmapModelProfile').addEventListener('input', renderHeatmap);
-    $('heatmapHoursPerDay').addEventListener('input', renderHeatmap);
-    $('utilizationPct').addEventListener('input', renderHeatmap);
-    $('inputOutputRatio').addEventListener('input', renderHeatmap);
+    $('miniVariant').addEventListener('input', () => { updateMiniSelectorOptions(); syncUrlState(); });
+    $('displayCurrency').addEventListener('input', () => { refreshCurrencyLabels(); calculate(); renderMiniSelection(); renderHeatmap(); syncUrlState(); });
+    $('usdToAud').addEventListener('input', () => { calculate(); renderMiniSelection(); renderHeatmap(); syncUrlState(); });
+    $('miniMemory').addEventListener('input', () => { renderMiniSelection(); renderThroughputEstimate(); renderHeatmap(); syncUrlState(); });
+    $('miniStorage').addEventListener('input', () => { renderMiniSelection(); renderHeatmap(); syncUrlState(); });
+    $('miniEthernet').addEventListener('input', () => { renderMiniSelection(); renderHeatmap(); syncUrlState(); });
+    $('localModelProfile').addEventListener('input', () => { renderThroughputEstimate(); syncUrlState(); });
+    $('heatmapModelProfile').addEventListener('input', () => { renderHeatmap(); syncUrlState(); });
+    $('heatmapHoursPerDay').addEventListener('input', () => { renderHeatmap(); syncUrlState(); });
+    $('utilizationPct').addEventListener('input', () => { renderHeatmap(); syncUrlState(); });
+    $('inputOutputRatio').addEventListener('input', () => { renderHeatmap(); syncUrlState(); });
     function syncStackCount(sourceId) {
       const val = $(sourceId).value;
       $('stackCount').value = val;
       $('stackCountMaster').value = val;
       const n = parseInt(val, 10);
       const hint = $('masterClusterHint');
-      if (hint) hint.textContent = n > 1 ? `throughput ×${clusterSpeedup(n).toFixed(2)} · prices ×${n}` : '';
+      if (hint) {
+        hint.textContent =
+          n > 1
+            ? `throughput ×${clusterSpeedup(n).toFixed(2)} · prices ×${n}${
+                n > MBP_MAX_CLUSTER ? ` · MBP min(N,${MBP_MAX_CLUSTER})` : ''
+              }`
+            : '';
+      }
       renderMiniSelection();
       renderThroughputEstimate();
       renderHeatmap();
       renderStackScalingChart();
       renderMasterTable();
+      syncUrlState();
     }
     $('stackCount').addEventListener('input', () => syncStackCount('stackCount'));
     $('stackCountMaster').addEventListener('input', () => syncStackCount('stackCountMaster'));
@@ -2207,9 +2422,11 @@
     (async function boot() {
       await Promise.all([loadThroughputBenchmarks(), loadClusterScaling()]);
       await loadApplePricing();
+      applyUrlState();
       renderMasterTable();
       refreshAppleInfoPopover();
       initAppleInfoDialog();
+      syncUrlState();
     })();
   </script>
 </body>

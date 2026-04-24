@@ -1,6 +1,6 @@
 {
   "title": "RDMA / Thunderbolt cluster speedup (illustrative)",
-  "methodology": "exo (distributed MLX inference) reports up to ~1.8× speedup with 2 devices and ~3.2× with 4 devices in tensor-parallel mode over Thunderbolt, with RDMA reducing inter-device latency (see sources). This page models combined inference speedup as S(N)=N^β where β is the average of log₂(1.8) and log₄(3.2) so the curve passes near both published anchors. That is a curve fit for visualization — not a guarantee for your model or topology.",
+  "methodology": "exo (distributed MLX inference) reports up to ~1.8× speedup with 2 devices and ~3.2× with 4 devices in tensor-parallel mode over Thunderbolt, with RDMA reducing inter-device latency (see sources). This page models combined inference speedup as S(N)=N^β where β is the average of log₂(1.8) and log₄(3.2) so the curve passes near both published anchors. That is a curve fit for visualization — not a guarantee for your model or topology. MacBook Pro columns cap N at 3 (2–3 linked laptops is the realistic band); Mac mini and Mac Studio use the full 1–8 stack selector.",
   "beta": 0.8439,
   "betaDerivation": "β = average(log₂(1.8), log₄(3.2)) ≈ 0.8439; S(N)=N^β.",
   "maxMachinesChart": 8,
