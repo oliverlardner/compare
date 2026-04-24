@@ -665,6 +665,16 @@
       border-color: rgba(167,139,250,.34);
       color: #ddd6fe;
     }
+    .openclaw-lobster {
+      display: inline;
+      margin-left: 5px;
+      cursor: help;
+      font-size: 1.05em;
+      line-height: 1;
+      vertical-align: middle;
+      user-select: none;
+      filter: drop-shadow(0 0 1px rgba(0,0,0,.35));
+    }
     .mt-cluster-note {
       font-size: 11px; color: var(--muted); font-style: italic;
     }
@@ -1533,6 +1543,29 @@
       return /derived|estimate|~0\.5|~0\.25/i.test(note);
     }
 
+    /** OpenClaw docs: full-size Qwen, DeepSeek, or Llama–class models for local agents (docs.openclaw.ai/gateway/local-models). */
+    const OPENCLAW_LOBSTER_TOOLTIP =
+      'OpenClaw recommends full-size Qwen, DeepSeek, or Llama–class local models for agents (large context, tool use). OpenAI gpt-oss-20B is included as an open agent-oriented option. Not an official OpenClaw endorsement of this site — see docs.openclaw.ai/gateway/local-models';
+
+    function isOpenclawRecommendedProfile(profile) {
+      if (!profile) return false;
+      if (profile.openclawRecommended === true) return true;
+      if (profile.openclawRecommended === false) return false;
+      const k = String(profile.key || '').toLowerCase();
+      if (k.startsWith('llama31-8b')) return false;
+      if (k.startsWith('qwen')) return true;
+      if (k.startsWith('deepseek')) return true;
+      if (k.startsWith('llama')) return true;
+      if (k.startsWith('gpt-oss')) return true;
+      return false;
+    }
+
+    function openclawLobsterHtml(profile) {
+      if (!isOpenclawRecommendedProfile(profile)) return '';
+      const t = escHtml(OPENCLAW_LOBSTER_TOOLTIP);
+      return ` <span class="openclaw-lobster" role="img" aria-label="OpenClaw local guidance (Qwen / DeepSeek / Llama–class)" title="${t}">🦞</span>`;
+    }
+
     function escHtml(t) {
       if (t == null || t === '') return '';
       const d = document.createElement('div');
@@ -1668,7 +1701,12 @@
       } else {
         $('miniVariant').innerHTML = appleAuMacMini.map((item, idx) => `<option value="${idx}">${escHtml(item.label)}</option>`).join('');
       }
-      const modelOptions = localModelProfiles.map((item, idx) => `<option value="${idx}">${escHtml(item.label)}</option>`).join('');
+      const modelOptions = localModelProfiles
+        .map((item, idx) => {
+          const oc = isOpenclawRecommendedProfile(item) ? '🦞 ' : '';
+          return `<option value="${idx}">${oc}${escHtml(item.label)}</option>`;
+        })
+        .join('');
       $('localModelProfile').innerHTML = modelOptions;
       $('heatmapModelProfile').innerHTML = modelOptions;
       updateMiniSelectorOptions();
@@ -1935,6 +1973,7 @@
           <span><span class="mt-legend-swatch" style="background:rgba(125,211,252,.3);border:2px solid rgba(125,211,252,.65);"></span>Best entry point per model</span>
           <span><span class="mt-legend-swatch" style="background:rgba(167,139,250,.3);border:2px solid #a78bfa;"></span>Overall winner (usefulness × tok/s / price)</span>
           <span><span class="mt-legend-swatch" style="background:rgba(52,211,153,.25);border:2px solid #34d399;"></span>Best portable (MacBook Pro — usefulness × tok/s / price)</span>
+          <span><span class="mt-legend-swatch" style="font-size:14px;line-height:1;">🦞</span>OpenClaw local guidance (see tooltip on model names)</span>
         </div>
         <p class="sub" style="margin:0 0 12px;font-style:italic;font-size:12px;">
           ⚠ macOS uses ~6 GB of unified memory for the OS and background processes. Configs with &lt;8 GB headroom after loading a model are flagged as swap risk.
@@ -1998,7 +2037,7 @@
         const quantBadge = quant === 'Q4'
           ? ''
           : `<span class="mt-quant-badge" data-quant="${quant}">${quant}${isDerivedQuantProfile(profile) ? ' ~est' : ''}</span>`;
-        parts.push(`<td class="mt-col-model" data-col="0" ${modelNote}>${escHtml(modelLabel)}${quantBadge}${badge}</td>`);
+        parts.push(`<td class="mt-col-model" data-col="0" ${modelNote}>${escHtml(modelLabel)}${openclawLobsterHtml(profile)}${quantBadge}${badge}</td>`);
 
         /* Usefulness bar */
         const pct = (composite / 10) * 100;
@@ -2060,6 +2099,7 @@
           Hover any score cell for sub-scores. Q8/F16 rows marked <strong>~est</strong> are derived from Q4 measurements using Apple Silicon memory-bandwidth scaling (Q8 ≈ 0.5× Q4 tok/s, F16 ≈ 0.25× Q4 tok/s).
           Cells marked <strong>†</strong> are cluster-only fits (model sharded across machines). Frontier models remain conservative placeholders.
           <strong>Best portable</strong> is the highest-scoring MacBook Pro config by the same composite² × tok/s / price formula as the overall winner, evaluated across laptop columns only (cluster math min(N,3) when N&gt;1).
+          <span aria-hidden="true">🦞</span> marks profiles that match <a href="https://docs.openclaw.ai/gateway/local-models" target="_blank" rel="noopener noreferrer">OpenClaw&rsquo;s local-model guidance</a> (Qwen, DeepSeek, or Llama–class; gpt-oss-20B included; Llama 3.1 8B excluded as &ldquo;small&rdquo;).
         </p>
       `);
 
