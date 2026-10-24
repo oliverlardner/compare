@@ -6,7 +6,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none';" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <title>Local vs Cloud AI Cost Comparison</title>
-  <meta name="description" content="Compare Apple AU desktop pricing and local LLM throughput to cloud API token costs. Break-even calculator, Mac stacks, MLX-style benchmarks — compare.openmoss.cloud." />
+  <meta name="description" content="Compare local AI hardware pricing and local LLM throughput to cloud API token costs. Break-even calculator, Mac/DGX stacks, MLX/TensorRT-style benchmarks — compare.openmoss.cloud." />
   <meta name="robots" content="index,follow" />
   <meta name="theme-color" content="#0b1020" />
   <link rel="canonical" href="https://compare.openmoss.cloud/" />
@@ -507,36 +507,7 @@
       border-radius: 10px;
     }
     .master-toolbar-hint { font-size: 12px; color: var(--muted); }
-    .master-oc-row {
-      display: inline-flex; align-items: center; gap: 10px; cursor: pointer;
-      user-select: none; margin-left: 4px;
-    }
-    .master-oc-cb {
-      position: absolute; width: 1px; height: 1px; opacity: 0; margin: 0; overflow: hidden;
-      clip: rect(0,0,0,0);
-    }
-    .master-oc-switch {
-      position: relative; flex-shrink: 0;
-      width: 40px; height: 22px; border-radius: 999px;
-      background: rgba(148,163,184,.25); border: 1px solid rgba(148,163,184,.4);
-      transition: background 0.2s, border-color 0.2s;
-    }
-    .master-oc-switch::after {
-      content: ""; position: absolute; top: 2px; left: 2px;
-      width: 16px; height: 16px; border-radius: 50%;
-      background: #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,.2);
-      transition: transform 0.2s;
-    }
-    .master-oc-cb:focus-visible + .master-oc-switch { outline: 2px solid #a78bfa; outline-offset: 2px; }
-    .master-oc-cb:checked + .master-oc-switch {
-      background: rgba(167,139,250,.45); border-color: rgba(167,139,250,.5);
-    }
-    .master-oc-cb:checked + .master-oc-switch::after { transform: translateX(18px); background: #f5f3ff; }
-    .master-oc-text { font-size: 13px; color: #cbd5e1; }
-    .mt-legend-override {
-      width: 100%; margin: 0 0 12px; font-size: 11px; color: var(--muted);
-      font-style: italic; line-height: 1.45;
-    }
+
 
     /* ─── Master table ─────────────────────────────────────────── */
     .mt-wrap { overflow-x: auto; margin-top: 4px; }
@@ -580,22 +551,13 @@
       white-space: normal; word-break: break-word; font-weight: 500;
       font-size: 12px;
     }
-    .mt-col-openclaw {
-      width: 36px; min-width: 36px; max-width: 42px;
-      text-align: center; vertical-align: middle;
-      font-size: 15px; line-height: 1.15; padding: 6px 4px;
-    }
-    .mt-col-openclaw .mt-ocl-inner {
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-    }
-    .mt-col-openclaw .openclaw-lobster { font-size: 1.05em; }
-    .mt-col-openclaw .mt-openclaw-crown { font-size: 1em; }
+
     .mt-col-score { width: 110px; }
     .mt-col-mem   { width: 58px; color: var(--muted); font-size: 11px; text-align: center; }
     .mt-col-tps   { width: 58px; text-align: center; font-size: 12px; }
     .mt-th-overall  { color: #e9d5ff !important; background: rgba(167,139,250,.13); }
     .mt-th-portable { color: #a7f3d0 !important; background: rgba(52,211,153,.12); }
-    .mt-th-openclaw { color: #fde68a !important; background: rgba(251,191,36,.12); }
+
     /* tok/s cell colours */
     .mtc-none  { background: rgba(0,0,0,.35); color: #475569; }
     .mtc-tight { background: rgba(251,191,36,.14); color: #fbbf24; font-style: italic; }
@@ -628,16 +590,9 @@
       outline-offset: -2px;
       border-radius: 4px;
     }
-    .mtc-winner-openclaw {
-      background: rgba(251,191,36,.16) !important;
-      color: #fde68a !important;
-      font-weight: 700;
-      outline: 2px solid #f59e0b;
-      outline-offset: -2px;
-      border-radius: 4px;
-    }
+
     .mt-row-portable-winner td.mt-col-model { color: #a7f3d0; }
-    .mt-row-openclaw-winner td.mt-col-openclaw { color: #fde68a; }
+
     /* row / column crosshair highlight on hover */
     .mt-table tr.mt-row-highlight > td,
     .mt-table tr.mt-row-highlight > th {
@@ -664,10 +619,7 @@
       outline: 1px solid rgba(148,163,184,.35);
       outline-offset: -1px;
     }
-    .mt-openclaw-crown {
-      line-height: 1; cursor: help; user-select: none;
-      filter: drop-shadow(0 0 1px rgba(0,0,0,.4));
-    }
+
     /* usefulness score bar */
     .score-bar-wrap {
       display: flex; align-items: center; gap: 7px;
@@ -719,16 +671,7 @@
       border-color: rgba(167,139,250,.34);
       color: #ddd6fe;
     }
-    .openclaw-lobster {
-      display: inline-block;
-      margin: 0;
-      cursor: help;
-      font-size: 1.1em;
-      line-height: 1;
-      vertical-align: middle;
-      user-select: none;
-      filter: drop-shadow(0 0 1px rgba(0,0,0,.35));
-    }
+
     .mt-cluster-note {
       font-size: 11px; color: var(--muted); font-style: italic;
     }
@@ -751,7 +694,7 @@
 
     <div class="tabs" role="tablist" aria-label="Main sections">
       <button type="button" class="tab-btn" role="tab" id="tabMaster" aria-selected="true" aria-controls="panelMaster">Master table</button>
-      <button type="button" class="tab-btn" role="tab" id="tabApple" aria-selected="false" aria-controls="panelApple" tabindex="-1">Apple AU pricing</button>
+      <button type="button" class="tab-btn" role="tab" id="tabApple" aria-selected="false" aria-controls="panelApple" tabindex="-1">Hardware pricing</button>
       <button type="button" class="tab-btn" role="tab" id="tabCalc" aria-selected="false" aria-controls="panelCalc" tabindex="-1">Break-even calculator</button>
     </div>
 
@@ -776,7 +719,7 @@
 
         <div class="selector-row">
           <div class="field">
-            <label for="miniVariant">Apple desktop variant</label>
+            <label for="miniVariant">Hardware variant</label>
             <select id="miniVariant"></select>
           </div>
           <div class="field">
@@ -808,7 +751,7 @@
 
         <div class="mini-grid">
           <div class="mini-card">
-            <div class="k" id="miniPriceLabel">Selected config — Apple AU (stack total)</div>
+            <div class="k" id="miniPriceLabel">Selected config — hardware (stack total)</div>
             <div class="mini-price" id="miniPriceAud">A$0</div>
             <div class="mini-meta" id="miniBreakdown"></div>
             <div class="btn-row">
@@ -861,7 +804,7 @@
             <thead>
               <tr>
                 <th>Config <span id="heatmapStackHint" class="pill" style="font-weight:400;margin-left:6px;"></span></th>
-                <th>Apple AU price <span id="heatmapPriceHint" class="pill" style="font-weight:400;margin-left:6px;"></span></th>
+                <th>Hardware price <span id="heatmapPriceHint" class="pill" style="font-weight:400;margin-left:6px;"></span></th>
                 <th>Break-even</th>
                 <th id="heatmapSavingsHeader">Monthly savings (AUD)</th>
                 <th>Verdict</th>
@@ -878,8 +821,9 @@
       <div class="panel wide-panel" style="overflow:visible;">
         <div class="panel-inner">
           <div class="ref-callout" style="margin-bottom:16px;">
-            <strong>Real-world note:</strong> The Mac mini M4 16GB was confirmed insufficient for practical local AI use — macOS, background apps, and the model together exceed 16GB unified memory, causing heavy swap and severe slowdowns. <strong>24GB is the practical minimum</strong> for running a single small model alongside a browser. Configs with &lt;8GB headroom after loading the model are marked <em>⚠ swap risk</em> in this table.
+            <strong>Real-world note:</strong> A previous-generation Mac mini M4 16GB owner report found practical local AI use pushed heavily into swap once macOS and other apps were included. The new M6 still starts at 16GB, so <strong>24GB remains the practical minimum recommendation</strong> for running a small model alongside a browser. Configs with &lt;8GB headroom after loading the model are marked <em>⚠ swap risk</em> in this table.
           </div>
+          <p class="sub" style="margin:0 0 16px;"><strong>Throughput values are estimates unless a row says it uses a measured result.</strong> New-model quality scores based only on vendor cards are marked provisional in the row notes.</p>
           <div class="master-toolbar">
             <label for="stackCountMaster" class="master-toolbar-label">Machines in cluster</label>
             <select id="stackCountMaster" class="master-toolbar-select">
@@ -900,11 +844,7 @@
               <option value="code">Best for code</option>
               <option value="best">Best (top quality, good speed, any $)</option>
             </select>
-            <label class="master-oc-row" for="showOpenclawMaster">
-              <input type="checkbox" id="showOpenclawMaster" class="master-oc-cb" />
-              <span class="master-oc-switch" aria-hidden="true"></span>
-              <span class="master-oc-text">OpenClaw recommendations</span>
-            </label>
+
           </div>
           <div id="masterTableContainer">
             <p class="sub" style="margin:0;">Loading…</p>
@@ -921,22 +861,22 @@
             <h2>1) Pick a hardware starting point</h2>
             <div class="sub">These presets are just editable starting points. If your exact config is different, overwrite the numbers below.</div>
             <div class="chips">
-              <button class="chip" data-hw="m4max" type="button">Mac Studio M4 Max</button>
-              <button class="chip" data-hw="m3ultra" type="button">Mac Studio M3 Ultra</button>
+              <button class="chip" data-hw="m5max" type="button">Mac Studio M5 Max</button>
+              <button class="chip" data-hw="m5ultra" type="button">Mac Studio M5 Ultra</button>
               <button class="chip" data-hw="mbpmax" type="button">MacBook Pro Max</button>
             </div>
             <div class="form-grid">
               <div class="field">
                 <label for="hardwareName">Hardware name</label>
-                <input id="hardwareName" value="Mac Studio M3 Ultra" />
+                <input id="hardwareName" value="Mac Studio M5 Ultra" />
               </div>
               <div class="field">
                 <label for="hardwareCost" id="hardwareCostLabel">Upfront hardware cost (AUD)</label>
-                <input id="hardwareCost" type="number" min="0" step="1" value="3999" />
+                <input id="hardwareCost" type="number" min="0" step="1" value="9499" />
               </div>
               <div class="field">
                 <label for="avgWatts">Average power draw while running (watts)</label>
-                <input id="avgWatts" type="number" min="0" step="1" value="150" />
+                <input id="avgWatts" type="number" min="0" step="1" value="220" />
               </div>
               <div class="field">
                 <label for="electricityRate" id="electricityRateLabel">Electricity cost (AUD / kWh)</label>
@@ -1012,7 +952,7 @@
               Monthly cloud spend = ((input tokens × input price) + (output tokens × output price)) × days per month.<br />
               Monthly local spend = electricity + any extra monthly cost you add.<br />
               Break-even months = hardware upfront cost ÷ (monthly cloud spend − monthly local spend).<br /><br />
-              <strong>The sweet-spot heatmap (Apple AU pricing tab):</strong> answers the related question — how many tokens can this hardware generate locally on the chosen model, and what would that same volume cost on the cloud?<br />
+              <strong>The sweet-spot heatmap (Hardware pricing tab):</strong> answers the related question — how many tokens can this hardware generate locally on the chosen model, and what would that same volume cost on the cloud?<br />
               Output tokens/month = tok/s × 3600 × active hours/day × utilisation % × days/month. Input tokens = output tokens × input:output ratio. Both priced at the cloud API rates from this panel.<br />
               The tok/s figure is decode (generation) speed. Utilisation accounts for idle time, thinking time, and the fact that real usage is bursty — not a continuous token furnace. A realistic utilisation is 10–30%.<br />
               Cloud value = net monthly savings + electricity. Break-even = hardware price ÷ net monthly savings. This is a ceiling — tune active hours and utilisation % to match your real workflow.<br /><br />
@@ -1082,15 +1022,7 @@
     const CLUSTER_RAM_EFFICIENCY = 0.85;
     /* Thunderbolt / distributed inference (e.g. exo) can link a small number of MacBooks; 2–3 is the practical range — we cap MBP at 3. */
     const MBP_MAX_CLUSTER = 3;
-    const LS_MASTER_OPENCLAW = 'compare2:masterOpenclawV1';
     const LS_MASTER_WIN_MODE = 'compare2:masterWinModeV1';
-    /**
-     * Purple / green / gold OpenClaw highlights all use the same "mode" for picking (profile, col).
-     * - value: composite²×tok/s/price (original)
-     * - perf: tok/s/price only
-     * - code: coding²×tok/s/price
-     * - best: max composite with good tok/s (≥20 preferred, else ≥5); price ignored
-     */
     const MASTER_WIN_MODES = {
       value: {
         legendPurple: 'Purple: <strong>best value</strong> (composite²×tok/s / $)',
@@ -1423,8 +1355,8 @@
     const activateTab = initTabs();
 
     const hardwarePresets = {
-      m4max: { hardwareName: 'Mac Studio M4 Max', hardwareCost: 1999, avgWatts: 90 },
-      m3ultra: { hardwareName: 'Mac Studio M3 Ultra', hardwareCost: 3999, avgWatts: 150 },
+      m5max: { hardwareName: 'Mac Studio M5 Max', hardwareCost: 4299, avgWatts: 140 },
+      m5ultra: { hardwareName: 'Mac Studio M5 Ultra', hardwareCost: 9499, avgWatts: 220 },
       mbpmax: { hardwareName: 'MacBook Pro Max', hardwareCost: 3199, avgWatts: 55 },
     };
 
@@ -1632,8 +1564,28 @@
       return profiles.concat(derived);
     }
 
+    function addCurrentDesktopThroughputAliases(profiles) {
+      return profiles.map((profile) => {
+        const throughput = profile.throughput || {};
+        const ultraEstimate = Math.round((throughput['m3ultra-32-80'] || 0) * 1200 / 819);
+        return {
+          ...profile,
+          throughput: {
+            ...throughput,
+            'macmini-m6-12-12': throughput['macmini-m6-12-12'] ?? throughput['m5-10-10'] ?? 0,
+            'macmini-m5pro-15-16': throughput['macmini-m5pro-15-16'] ?? throughput['m5pro-15-16'] ?? 0,
+            'macmini-m5pro-18-20': throughput['macmini-m5pro-18-20'] ?? throughput['m5pro-15-16'] ?? 0,
+            'macstudio-m5max-18-32': throughput['macstudio-m5max-18-32'] ?? throughput['m5max-18-32'] ?? 0,
+            'macstudio-m5max-18-40': throughput['macstudio-m5max-18-40'] ?? throughput['m5max-18-40'] ?? 0,
+            'macstudio-m5ultra-30-64': throughput['macstudio-m5ultra-30-64'] ?? ultraEstimate,
+            'macstudio-m5ultra-36-80': throughput['macstudio-m5ultra-36-80'] ?? ultraEstimate,
+          },
+        };
+      });
+    }
+
     function normalizeQuantizedProfiles(profiles) {
-      return appendDerivedQuantizedProfiles(profiles);
+      return appendDerivedQuantizedProfiles(addCurrentDesktopThroughputAliases(profiles));
     }
 
     function profileQuant(profile) {
@@ -1648,37 +1600,6 @@
       return /derived|estimate|~0\.5|~0\.25/i.test(note);
     }
 
-    /** OpenClaw (docs.openclaw.ai/gateway/local-models) stresses large context + the largest checkpoint you can run; it warns against *small* or *aggressively* compressed weights (higher injection risk), not against ordinary 4/8-bit MLX-style serving of a big model. 🦞 = model *family* matches their Qwen / DeepSeek / Llama examples — not “unquantized only”. */
-    const OPENCLAW_LOBSTER_TOOLTIP =
-      'OpenClaw names Qwen, DeepSeek, and Llama–class checkpoints for local agents and tells you to avoid tiny or ultra-aggressive quants — not standard 4-bit/8-bit serves of large models. This table still lists Q4/Q8/F16 tiers; prefer the largest/least aggressive build your Mac can hold. gpt-oss-20B included as an open agent-style option. See docs.openclaw.ai/gateway/local-models — not an OpenClaw endorsement of this site.';
-
-    /** Family match only; Q4/Q8/F16 rows still get 🦞 — see OPENCLAW_LOBSTER_TOOLTIP. */
-    function isOpenclawRecommendedProfile(profile) {
-      if (!profile) return false;
-      if (profile.openclawRecommended === true) return true;
-      if (profile.openclawRecommended === false) return false;
-      const k = String(profile.key || '').toLowerCase();
-      if (k.startsWith('llama31-8b')) return false;
-      if (k.startsWith('qwen')) return true;
-      if (k.startsWith('deepseek')) return true;
-      if (k.startsWith('llama')) return true;
-      if (k.startsWith('gpt-oss')) return true;
-      return false;
-    }
-
-    const OPENCLAW_CROWN_TOOLTIP =
-      'Best for local OpenClaw in this table: highest composite² × tok/s / price among 🦞 family rows only (same formula as other winners; not an official OpenClaw pick).';
-
-    function openclawLobsterHtml(profile) {
-      if (!isOpenclawRecommendedProfile(profile)) return '';
-      const t = escHtml(OPENCLAW_LOBSTER_TOOLTIP);
-      return `<span class="openclaw-lobster" role="img" aria-label="Model family aligned with OpenClaw examples (read tooltip — quantization nuance)" title="${t}">🦞</span>`;
-    }
-
-    function openclawCrownHtml() {
-      const t = escHtml(OPENCLAW_CROWN_TOOLTIP);
-      return `<span class="mt-openclaw-crown" role="img" aria-label="Best for local OpenClaw in this table" title="${t}">👑</span>`;
-    }
 
     function escHtml(t) {
       if (t == null || t === '') return '';
@@ -1695,9 +1616,9 @@
       parts.push(
         '<p>Example setups include <a href="https://youtu.be/Ju0ndy2kwlw" target="_blank" rel="noopener noreferrer">NetworkChuck — 5× Mac Studios</a>. <strong>Price and power</strong> scale with machine count. <strong>Combined tok/s</strong> uses the sub-linear cluster curve (chart below), not a flat N× multiplier.</p>'
       );
-      parts.push('<h4 class="info-popover-h">Apple pricing snapshot</h4>');
+      parts.push('<h4 class="info-popover-h">Hardware pricing snapshot</h4>');
       parts.push(
-        '<p>Figures come from a captured AU store snapshot in <code>apple-au-mac-mini.json</code> (AUD). Use the <strong>Cloud vs local calculator</strong> tab for cloud pricing and break-even.</p>'
+        '<p>Figures come from a captured AU store snapshot in <code>apple-au-mac-mini.json</code> (AUD), plus NVIDIA DGX Spark specs/pricing converted from USD for rough comparison. Use the <strong>Cloud vs local calculator</strong> tab for cloud pricing and break-even.</p>'
       );
       parts.push('<h4 class="info-popover-h">Cluster speedup curve</h4>');
       parts.push(`<p>${escHtml(clusterScaling?.methodology)}</p>`);
@@ -1719,6 +1640,9 @@
       parts.push('<h4 class="info-popover-h">Single-machine tok/s</h4>');
       if (throughputBenchmarkData?.sources?.length) {
         parts.push(`<p>${escHtml(throughputBenchmarkData.methodology)}</p>`);
+        if (throughputBenchmarkData.desktopRefreshNote) {
+          parts.push(`<p class="note">${escHtml(throughputBenchmarkData.desktopRefreshNote)}</p>`);
+        }
         parts.push(
           '<ul class="info-popover-list">' +
             throughputBenchmarkData.sources
@@ -1835,8 +1759,9 @@
       $('miniStorage').innerHTML = item.storageOptions.map((opt, idx) => `<option value="${idx}">${escHtml(opt.label)} ${opt.delta ? `( + ${fmtAUD(opt.delta)} )` : '(included)'}</option>`).join('');
       $('miniEthernet').innerHTML = item.ethernetOptions.map((opt, idx) => `<option value="${idx}">${escHtml(opt.label)} ${opt.delta ? `( + ${fmtAUD(opt.delta)} )` : '(included)'}</option>`).join('');
       const isMbp = item.label.startsWith('MacBook Pro');
+      const isNvidia = item.label.startsWith('NVIDIA');
       const ethernetLabel = document.querySelector('label[for="miniEthernet"]');
-      if (ethernetLabel) ethernetLabel.textContent = isMbp ? 'Connectivity' : 'Ethernet';
+      if (ethernetLabel) ethernetLabel.textContent = isMbp ? 'Connectivity' : isNvidia ? 'Networking' : 'Ethernet';
       if ($('miniEthernet')) $('miniEthernet').parentElement.style.display = isMbp && item.ethernetOptions.length === 1 && item.ethernetOptions[0].delta === 0 ? 'none' : '';
       renderMiniSelection();
       renderThroughputEstimate();
@@ -1862,17 +1787,18 @@
       }
       const { item, memory, storage, ethernet, totalAud } = cfg;
       const n = getStackCount();
-      const dev = item.label.startsWith('MacBook Pro') ? 'MBP' : item.label.startsWith('Mac mini') ? 'mini' : 'Studio';
+      const dev = item.label.startsWith('MacBook Pro') ? 'MBP' : item.label.startsWith('Mac mini') ? 'mini' : item.label.startsWith('NVIDIA') ? 'DGX' : 'Studio';
       const nEff = stackCountForDevice(dev, n);
       const stackTotal = totalAud * nEff;
       const cappedMbp = dev === 'MBP' && n > MBP_MAX_CLUSTER;
       $('miniPriceLabel').textContent =
-        nEff === 1 ? 'Selected config — Apple AU' : `Selected stack — Apple AU (${nEff}× identical machines${cappedMbp ? ' · laptop cluster cap' : ''})`;
+        nEff === 1 ? 'Selected config — hardware' : `Selected stack — hardware (${nEff}× identical machines${cappedMbp ? ' · laptop cluster cap' : ''})`;
       $('miniPriceAud').textContent = fmtAUD(stackTotal);
       const rwNote = memory.realWorldNote || item.realWorldNote || '';
       const isMbpItem = item.label.startsWith('MacBook Pro');
+      const isNvidiaItem = item.label.startsWith('NVIDIA');
       const connLine = isMbpItem ? `${escHtml(memory.label)} · ${escHtml(storage.label)}` : `${escHtml(memory.label)} · ${escHtml(storage.label)} · ${escHtml(ethernet.label)}`;
-      const ethernetBreakdown = isMbpItem ? '' : ` + Ethernet ${fmtAUD(ethernet.delta)}`;
+      const ethernetBreakdown = isMbpItem || isNvidiaItem ? '' : ` + Ethernet ${fmtAUD(ethernet.delta)}`;
       const capLine = cappedMbp
         ? `<br /><span class="note" style="font-size:12px;">MacBook Pro cluster uses min(N, ${MBP_MAX_CLUSTER}) for price and throughput (Thunderbolt / exo — often 2–3 machines).</span>`
         : '';
@@ -1895,7 +1821,7 @@
       }
       const { item, memory } = cfg;
       const n = getStackCount();
-      const dev = item.label.startsWith('MacBook Pro') ? 'MBP' : item.label.startsWith('Mac mini') ? 'mini' : 'Studio';
+      const dev = item.label.startsWith('MacBook Pro') ? 'MBP' : item.label.startsWith('Mac mini') ? 'mini' : item.label.startsWith('NVIDIA') ? 'DGX' : 'Studio';
       const nEff = stackCountForDevice(dev, n);
       const profile = localModelProfiles[parseInt($('localModelProfile').value || '0', 10)] || localModelProfiles[0];
       const memoryGb = parseMemoryGb(memory.label);
@@ -1947,11 +1873,9 @@
       }
 
       const n = getStackCount();
-      const showOpenclawEl = $('showOpenclawMaster');
-      const showOpenclaw = showOpenclawEl ? showOpenclawEl.checked : false;
-      const cScore = showOpenclaw ? 2 : 1;
-      const cMem = showOpenclaw ? 3 : 2;
-      const tpsColBase = showOpenclaw ? 4 : 3;
+      const cScore = 1;
+      const cMem = 2;
+      const tpsColBase = 3;
       const winMode = getMasterWinMode();
       const WM = MASTER_WIN_MODES[winMode] || MASTER_WIN_MODES.value;
 
@@ -1963,10 +1887,10 @@
       appleAuMacMini.forEach((v) => {
         const cpuMatch = v.label.match(/(\d+)-core CPU/);
         const gpuMatch = v.label.match(/(\d+)-core GPU/);
-        const chipMatch = v.label.match(/(M\d[\w\s]*?)\s*·\s*\d+-core CPU/);
-        const device = v.label.startsWith('Mac mini') ? 'mini' : v.label.startsWith('MacBook Pro') ? 'MBP' : 'Studio';
-        const chip = chipMatch ? chipMatch[1].trim() : '';
-        const cores = cpuMatch && gpuMatch ? `${cpuMatch[1]}c/${gpuMatch[1]}c` : '';
+        const chipMatch = v.label.match(/(M\d[\w\s]*?|GB10(?:\s+Grace Blackwell)?)\s*·\s*\d+-core CPU/);
+        const device = v.label.startsWith('Mac mini') ? 'mini' : v.label.startsWith('MacBook Pro') ? 'MBP' : v.label.startsWith('NVIDIA') ? 'DGX' : 'Studio';
+        const chip = chipMatch ? chipMatch[1].trim() : (v.chip || '');
+        const cores = cpuMatch && gpuMatch ? `${cpuMatch[1]}c/${gpuMatch[1]}c` : cpuMatch ? `${cpuMatch[1]}c` : '';
 
         v.memoryOptions.forEach((mem) => {
           const colN = stackCountForDevice(device, n);
@@ -2021,13 +1945,12 @@
         return -1;
       };
 
-      /* Table highlights: overall / portable / (optional) OpenClaw — all use the same "winMode" from the toolbar. */
-      function pickWinningConfig(mbpOnly, openclawOnly) {
+      /* Table highlights: overall and portable use the same "winMode" from the toolbar. */
+      function pickWinningConfig(mbpOnly) {
         if (winMode === 'best') {
           const bestAtMin = (minTok) => {
             let best = null;
             localModelProfiles.forEach((profile) => {
-              if (openclawOnly && !isOpenclawRecommendedProfile(profile)) return;
               const comp = profile.usefulness?.composite ?? 5;
               cols.forEach((col, ci) => {
                 if (mbpOnly && col.device !== 'MBP') return;
@@ -2052,7 +1975,6 @@
         let bestScore = -Infinity;
         let out = { key: null, colIdx: -1 };
         localModelProfiles.forEach((profile) => {
-          if (openclawOnly && !isOpenclawRecommendedProfile(profile)) return;
           const composite = profile.usefulness?.composite ?? 5;
           const coding = profile.usefulness?.coding ?? 5;
           cols.forEach((col, ci) => {
@@ -2079,36 +2001,15 @@
         return out;
       }
 
-      const overallP = pickWinningConfig(false, false);
+      const overallP = pickWinningConfig(false);
       let overallWinnerKey = overallP.key;
       let overallWinnerColIdx = overallP.colIdx;
-      const portableP = pickWinningConfig(true, false);
+      const portableP = pickWinningConfig(true);
       let portableWinnerKey = portableP.key;
       let portableWinnerColIdx = portableP.colIdx;
-      let openclawWinnerKey = null;
-      let openclawWinnerColIdx = -1;
-      if (showOpenclaw) {
-        const oc = pickWinningConfig(false, true);
-        openclawWinnerKey = oc.key;
-        openclawWinnerColIdx = oc.colIdx;
-      }
-
-      /** Column header / price-row class: when overall (or portable) and OpenClaw pick the same cell, gold wins over purple/green. */
       function tokThWinCls(ci) {
-        if (showOpenclaw && openclawWinnerKey) {
-          const jointOverall =
-            overallWinnerKey === openclawWinnerKey &&
-            ci === overallWinnerColIdx &&
-            ci === openclawWinnerColIdx;
-          const jointPortable =
-            portableWinnerKey === openclawWinnerKey &&
-            ci === portableWinnerColIdx &&
-            ci === openclawWinnerColIdx;
-          if (jointOverall || jointPortable) return ' mt-th-openclaw';
-        }
         if (ci === overallWinnerColIdx) return ' mt-th-overall';
         if (ci === portableWinnerColIdx) return ' mt-th-portable';
-        if (showOpenclaw && ci === openclawWinnerColIdx) return ' mt-th-openclaw';
         return '';
       }
 
@@ -2128,13 +2029,6 @@
       }
 
       /* Legend */
-      const legendOpenclaw = showOpenclaw
-        ? `<span><span class="mt-legend-swatch" style="background:rgba(251,191,36,.22);border:2px solid #f59e0b;"></span>Best for OpenClaw (🦞 only — <strong>same mode</strong> as purple above)</span>
-          <span><span class="mt-legend-swatch" style="font-size:14px;line-height:1;">🦞</span>OpenClaw column (families; 👑 = best in table — not “no quants”)</span>`
-        : '';
-      const legendOverride = showOpenclaw
-        ? '<p class="mt-legend-override">If the <strong>same tok/s cell</strong> is both the highlight (purple/green) and the OpenClaw best pick, the <strong>gold (OpenClaw)</strong> style wins on that cell and its column. The hover text still notes both the highlight mode and OpenClaw where they overlap.</p>'
-        : '';
       parts.push(`
         <div class="mt-legend">
           <span><span class="mt-legend-swatch" style="background:rgba(134,239,172,.3);"></span>Good (20–60 tok/s)</span>
@@ -2146,9 +2040,7 @@
           <span><span class="mt-legend-swatch" style="background:rgba(125,211,252,.3);border:2px solid rgba(125,211,252,.65);"></span>Best entry point per model</span>
           <span><span class="mt-legend-swatch" style="background:rgba(167,139,250,.3);border:2px solid #a78bfa;"></span>${WM.legendPurple}</span>
           <span><span class="mt-legend-swatch" style="background:rgba(52,211,153,.25);border:2px solid #34d399;"></span>Green: <strong>best portable</strong> (same mode as purple, MBP columns only)</span>
-          ${legendOpenclaw}
         </div>
-        ${legendOverride}
         <p class="sub" style="margin:0 0 12px;font-style:italic;font-size:12px;">
           ⚠ macOS uses ~6 GB of unified memory for the OS and background processes. Configs with &lt;8 GB headroom after loading a model are flagged as swap risk.
           For large models, cluster-only fit is enabled when pooled RAM across N machines (at ${(CLUSTER_RAM_EFFICIENCY * 100).toFixed(0)}% usable efficiency) meets model memory. MacBook Pro columns assume at most ${MBP_MAX_CLUSTER} machines in the chain (2–3 is typical).
@@ -2161,11 +2053,6 @@
       /* Header row */
       parts.push('<thead><tr>');
       parts.push('<th class="mt-col-model" data-col="0">Model</th>');
-      if (showOpenclaw) {
-        parts.push(
-          '<th class="mt-col-openclaw" data-col="1" title="OpenClaw: model families (🦞) cited as local examples; 👑 = best among those families using the same “Highlight by” mode as the purple (overall) cell">🦞</th>'
-        );
-      }
       parts.push(
         `<th class="mt-col-score" data-col="${cScore}" style="padding:9px 10px;vertical-align:middle;" title="Composite of Arena Elo, coding benchmarks, and reasoning benchmarks — 1–10 scale">Usefulness</th>`
       );
@@ -2186,9 +2073,6 @@
       parts.push('<tbody>');
       parts.push('<tr style="font-size:11px;color:var(--muted);">');
       parts.push('<td class="mt-col-model" data-col="0" style="color:var(--muted);font-weight:400;font-size:11px;">Price (base storage)</td>');
-      if (showOpenclaw) {
-        parts.push('<td class="mt-col-openclaw" data-col="1"></td>');
-      }
       parts.push(`<td data-col="${cScore}"></td><td data-col="${cMem}"></td>`);
       cols.forEach((col, ci) => {
         const shortP = fmtAUD(col.price).replace('A$', '$').replace(',000', 'k');
@@ -2202,28 +2086,13 @@
         const composite = profile.usefulness?.composite ?? 5;
         const isOverallRow = profile.key === overallWinnerKey;
         const isPortableRow = profile.key === portableWinnerKey;
-        const isOpenclawRow = showOpenclaw && openclawWinnerKey && profile.key === openclawWinnerKey;
         const perWinnerIdx = perModelWinnerIdx(profile);
 
-        const sameCellOpenclawAsOverall =
-          showOpenclaw &&
-          isOverallRow &&
-          isOpenclawRow &&
-          overallWinnerColIdx === openclawWinnerColIdx;
-        const sameCellOpenclawAsPortable =
-          showOpenclaw &&
-          isPortableRow &&
-          isOpenclawRow &&
-          portableWinnerColIdx === openclawWinnerColIdx;
-        const rowCls = sameCellOpenclawAsOverall || sameCellOpenclawAsPortable
-          ? ' class="mt-row-openclaw-winner"'
-          : isOverallRow
-            ? ' class="mt-row-overall-winner"'
-            : isPortableRow
-              ? ' class="mt-row-portable-winner"'
-              : isOpenclawRow
-                ? ' class="mt-row-openclaw-winner"'
-                : '';
+        const rowCls = isOverallRow
+          ? ' class="mt-row-overall-winner"'
+          : isPortableRow
+            ? ' class="mt-row-portable-winner"'
+            : '';
         parts.push(`<tr${rowCls}>`);
 
         /* Model name */
@@ -2242,18 +2111,6 @@
           : `<span class="mt-quant-badge" data-quant="${quant}">${quant}${isDerivedQuantProfile(profile) ? ' ~est' : ''}</span>`;
         parts.push(`<td class="mt-col-model" data-col="0" ${modelNote}>${escHtml(modelLabel)}${quantBadge}${badge}</td>`);
 
-        /* OpenClaw column */
-        if (showOpenclaw) {
-          if (isOpenclawRecommendedProfile(profile)) {
-            const oInner = `<div class="mt-ocl-inner">${openclawLobsterHtml(profile)}${isOpenclawRow ? openclawCrownHtml() : ''}</div>`;
-            const oTitle = isOpenclawRow
-              ? escHtml(`${OPENCLAW_CROWN_TOOLTIP} ${OPENCLAW_LOBSTER_TOOLTIP}`)
-              : escHtml(OPENCLAW_LOBSTER_TOOLTIP);
-            parts.push(`<td class="mt-col-openclaw" data-col="1" title="${oTitle}">${oInner}</td>`);
-          } else {
-            parts.push('<td class="mt-col-openclaw" data-col="1"></td>');
-          }
-        }
 
         /* Usefulness bar */
         const pct = (composite / 10) * 100;
@@ -2279,22 +2136,15 @@
           const tight = fit.tight;
           const isPerWinner = ci === perWinnerIdx;
           const isOverallWinner = isOverallRow && ci === overallWinnerColIdx;
-          const isOpenclawWinner = showOpenclaw && isOpenclawRow && ci === openclawWinnerColIdx;
-
           const isPortableWinner = isPortableRow && ci === portableWinnerColIdx;
-          const openclawWinsOverHighlight = isOpenclawWinner && (isOverallWinner || isPortableWinner);
           const cls = fit.clusterOnly && adj > 0 ? 'mtc-cluster' : tpsClass(adj, tight && adj > 0);
-          const extraCls = openclawWinsOverHighlight
-            ? ' mtc-winner-openclaw'
-            : isOverallWinner
-              ? ' mtc-winner-overall'
-              : isPortableWinner
-                ? ' mtc-winner-portable'
-                : isOpenclawWinner
-                  ? ' mtc-winner-openclaw'
-                  : isPerWinner
-                    ? ' mtc-winner-per-model'
-                    : '';
+          const extraCls = isOverallWinner
+            ? ' mtc-winner-overall'
+            : isPortableWinner
+              ? ' mtc-winner-portable'
+              : isPerWinner
+                ? ' mtc-winner-per-model'
+                : '';
           const rawTps = profile.throughput[col.variant] || 0;
           const tightNote = tight && adj > 0 ? ` ⚠ Swap risk — only ${col.ramGb - profile.memoryRequiredGb - OS_OVERHEAD_GB}GB headroom after OS overhead` : '';
           const clusterNote = fit.clusterOnly && adj > 0
@@ -2309,17 +2159,13 @@
             ? `${col.ramLabel} < ${profile.memoryRequiredGb}GB required — can't load model`
             : adj > 0
               ? `${adj} tok/s${col.colN > 1 ? ` (${rawTps} × ${col.colSpeedup.toFixed(2)} cluster)` : ''}${
-                openclawWinsOverHighlight
-                  ? ` — Best for OpenClaw${isOverallWinner ? WM.title : ' — Best portable'}`
-                  : isOverallWinner
-                    ? WM.title
-                    : isPortableWinner
-                      ? ' — Best portable'
-                      : isOpenclawWinner
-                        ? ' — Best for OpenClaw'
-                        : isPerWinner
-                          ? ' — Best entry point'
-                          : ''
+                isOverallWinner
+                  ? WM.title
+                  : isPortableWinner
+                    ? ' — Best portable'
+                    : isPerWinner
+                      ? ' — Best entry point'
+                      : ''
               }${tightNote}${clusterNote}${mbpNote}`
               : `Chip too slow / not enough RAM${mbpNote}`;
           const display = adj > 0 ? (fit.clusterOnly ? `${adj}†` : tight ? `${adj}~` : String(adj)) : '—';
@@ -2332,18 +2178,12 @@
 
       parts.push('</tbody></table></div>');
 
-      /* Footer note */
-      const footerOpenclaw = showOpenclaw
-        ? ` <strong>Best for OpenClaw</strong> uses the <strong>same mode</strong> as the &ldquo;Highlight by&rdquo; control but only for rows in the <strong>OpenClaw</strong> column (🦞 families). The 👑 in that column and the gold tok/s column are this site&rsquo;s top pick in that set — not an official OpenClaw designation.
-          <span aria-hidden="true">🦞</span> in the OpenClaw column marks <strong>model families</strong> OpenClaw cites as local examples (Qwen, DeepSeek, Llama–class; gpt-oss-20B included; Llama 3.1 8B excluded as a &ldquo;small&rdquo; row). OpenClaw warns against <em>aggressive</em> compression and tiny checkpoints — not normal 4-bit/8-bit MLX runs; use the <a href="https://docs.openclaw.ai/gateway/local-models" target="_blank" rel="noopener noreferrer">largest build you can run</a>.`
-        : '';
       parts.push(`
         <p class="sub mt-cluster-note" style="margin-top:12px;">
           Usefulness score = average of Arena Elo rank (Chatbot Arena/LMSys), coding benchmarks (LiveCodeBench), and reasoning benchmarks — all normalised 1–10.
           Hover any score cell for sub-scores. Q8/F16 rows marked <strong>~est</strong> are derived from Q4 measurements using Apple Silicon memory-bandwidth scaling (Q8 ≈ 0.5× Q4 tok/s, F16 ≈ 0.25× Q4 tok/s).
           Cells marked <strong>†</strong> are cluster-only fits (model sharded across machines). Frontier models remain conservative placeholders.
           ${WM.footer}
-          ${footerOpenclaw}
         </p>
       `);
 
@@ -2503,7 +2343,7 @@
       if (!cfg) return;
       const { item, memory, storage, ethernet, totalAud } = cfg;
       const n = getStackCount();
-      const dev = item.label.startsWith('MacBook Pro') ? 'MBP' : item.label.startsWith('Mac mini') ? 'mini' : 'Studio';
+      const dev = item.label.startsWith('MacBook Pro') ? 'MBP' : item.label.startsWith('Mac mini') ? 'mini' : item.label.startsWith('NVIDIA') ? 'DGX' : 'Studio';
       const nEff = stackCountForDevice(dev, n);
       $('hardwareName').value = `${item.label} · ${memory.label} · ${storage.label} · ${ethernet.label}${nEff > 1 ? ` · ×${nEff} stack` : ''}${dev === 'MBP' && n > nEff ? ' (laptop cap)' : ''}`;
       $('hardwareCost').value = totalAud * nEff;
@@ -2703,19 +2543,6 @@
       container.addEventListener('mouseleave', clearHighlight);
     })();
 
-    (function initMasterOpenclawToggle() {
-      const ocm = $('showOpenclawMaster');
-      if (!ocm) return;
-      const s = localStorage.getItem(LS_MASTER_OPENCLAW);
-      if (s !== null) ocm.checked = s === '1';
-      ocm.setAttribute('role', 'switch');
-      ocm.setAttribute('aria-checked', String(ocm.checked));
-      ocm.addEventListener('change', () => {
-        localStorage.setItem(LS_MASTER_OPENCLAW, ocm.checked ? '1' : '0');
-        ocm.setAttribute('aria-checked', String(ocm.checked));
-        renderMasterTable();
-      });
-    })();
 
     (function initMasterWinMode() {
       const sel = $('masterWinMode');
