@@ -1,63 +1,46 @@
-# HANDOFF
+# Maintainer handoff
 
-Updated: 2026-04-03 (Asia/Kuala_Lumpur)
+Updated: 2026-10-24
 
-## What was done
+## Repository synchronization
 
-The compare site was expanded from a placeholder into a Git-backed static page that currently includes:
+This update brings the public repository into line with the deployed static source after changes accumulated outside GitHub. It starts from the existing remote `main` history and copies only the approved public application files and regression tests. It does not replace or redeploy the live site.
 
-- break-even calculator for local hardware vs cloud API cost
-- AUD display by default, USD→AUD FX conversion (calculator and heatmap share the same path)
-- Apple Australia pricing for Mac mini and Mac Studio loaded from `apple-au-mac-mini.json`
-- interactive hardware selectors with a 1–8 machine "stack" control
-- heatmap / sweet-spot table (stack-aware)
-- throughput estimates loaded from `throughput-benchmarks.json` (MLX Q4 bands, cited sources)
-- cluster speedup curve (S = N^β, β fitted to published exo 2- and 4-node reports) from `cluster-scaling.json`, rendered as an SVG chart
-- model profiles from 8B to frontier (Qwen3 235B, Llama 405B, DeepSeek V3, Kimi K2)
-- model-fit warnings for configs that lack sufficient memory
-- tabbed layout: Apple AU pricing (default) + Cloud vs local calculator
-- info dialog consolidating methodology, sources, and data provenance
-- SEO: OG image, Twitter card, JSON-LD, canonical, favicon, robots.txt, sitemap.xml
+Included changes:
 
-## Important caveat
+- recorded Apple desktop refresh, laptop configurations and DGX Spark comparison;
+- expanded model catalog, memory gates, throughput profiles and evidence notes;
+- revised comparison highlights, shareable calculator state and laptop cluster cap;
+- removal of the former OpenClaw recommendation UI and logic;
+- regression tests for hardware data, model-profile coverage and that removal.
 
-Throughput numbers for Mac Studio M4 Max / M3 Ultra are aligned to published MLX Q4 ranges where available; Mac mini tiers are scaled heuristically. Frontier models (200B+, MoE, Kimi) use conservative placeholders. Multi-machine "combined tok/s" uses a power-law curve — not measured cluster throughput.
+## Files
 
-## Latest notable commits
+- `index.html`: interface, calculations and inline fallback model profiles.
+- `apple-au-mac-mini.json`: hardware catalog; historical filename retained for compatibility.
+- `throughput-benchmarks.json`: model/quantization catalog, assumptions and citations.
+- `cluster-scaling.json`: illustrative scaling curve.
+- `tests/*.test.mjs`: dependency-free Node regression contracts.
+- `og.jpg`, `robots.txt`, `sitemap.xml`: existing public metadata assets.
 
-- `b783601` Add Mac Studio configs and stronger model-fit warnings
-- `70d6ac1` Add local model throughput estimator
-- `f5c5f63` Add AUD display currency and FX conversion
-- `69c610e` Add Apple AU Mac mini pricing and sweet-spot heatmap
-- `f954e3d` Add initial compare calculator page
+No runtime credentials, deployment directories, backups, conversation history or private application state belong in this public repository.
 
-## Key files
+## Verify before publishing changes
 
-- `index.html` — main UI + calculator + chart; hardware chip presets and fallback throughput profiles live inline
-- `apple-au-mac-mini.json` — Apple AU desktop variants (Mac mini + Mac Studio), prices, options, power estimates
-- `throughput-benchmarks.json` — per-variant tok/s for each model profile, methodology, and source citations
-- `cluster-scaling.json` — RDMA / tensor-parallel speedup curve (β, anchors, sources)
-- `og.jpg` — 1200×630 Open Graph social preview image
-- `robots.txt` / `sitemap.xml` — basic crawl directives
-- `.gitignore` — macOS / editor artifact exclusions
+```bash
+node --test tests/*.test.mjs
+git diff --check
+python3 -m http.server 8080
+```
 
-## Deployment shape
+Check the hardware/model matrix, hardware selector, calculator, shared URL restoration and the browser console. JSON files must be served over HTTP, not opened through `file://`.
 
-- Repo is source of truth
-- VPS currently serves a static deployed copy
-- Changes were pushed to GitHub and then copied to the VPS
-- No Git private key was stored on the VPS
+## Evidence boundary
 
-## Good next steps
+Hardware snapshot date: 2026-08-25. Model catalog check date: 2026-10-15. Synchronizing source on 2026-10-24 does not refresh these dates or independently validate every external claim.
 
-1. ~~Move Apple desktop pricing out of `index.html`~~ — done
-2. ~~Move throughput profiles to JSON~~ — done (`throughput-benchmarks.json`)
-3. ~~Add benchmark-backed throughput data~~ — done for Studio-tier chips; Mac mini tiers are still scaled
-4. Make compatibility warnings more obvious in the heatmap itself
-5. Allow filtering the heatmap by selected model
-6. Possibly add more Apple hardware later
-7. Scope broad event listeners to specific form elements (minor perf)
+Keep measured/community results distinct from estimated throughput, quality heuristics, derived quantization rows and cluster placeholders. Tests enforce the stored snapshot and behavior contracts; they are not independent benchmark validation. Any future data refresh should review source URLs, availability, prices, quantization sizes, runtime overhead and context requirements rather than merely changing the dates.
 
-## Reminder
+## Deployment boundary
 
-If you use external carryover notes from another machine or agent, merge anything still relevant into this file or the repo so the next session does not depend on a local path.
+The live site is a static nginx deployment behind Traefik. Updating GitHub and updating production are separate operations. Do not pull, reset, clean or overwrite a live working tree to resolve repository drift; prepare and review changes in a separate checkout first.

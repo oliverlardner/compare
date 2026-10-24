@@ -1,5 +1,6 @@
 {
-  "methodology": "Smaller models: Mac Studio M4 Max / M3 Ultra tok/s are aligned to published MLX Q4 bands where available; Mac mini tiers are scaled heuristically. Large / frontier models (200B+, MoE, Kimi-class) use conservative placeholder tok/s and RAM gates — validate on your exact quant, context, and runtime; many are run sharded across multiple Macs in practice.",
+  "methodology": "Smaller models: Mac Studio M4 Max / M3 Ultra tok/s are aligned to published MLX Q4 bands where available; Mac mini tiers are scaled heuristically. Large / frontier models (200B+, MoE, Kimi-class) use conservative placeholder tok/s and RAM gates — validate on your exact quant, context, and runtime; many are run sharded across multiple Macs in practice. DGX Spark rows are conservative estimates, not measured MLX benchmarks; GB10 has 128GB coherent memory and 273GB/s bandwidth, but TensorRT-LLM/FP4 kernels may change real tok/s materially.",
+  "modelCatalogCheckedAt": "2026-10-15",
   "sources": [
     {
       "title": "InsiderLLM — M4 Max and M3 Ultra for Local LLMs (MLX Q4 tables)",
@@ -85,6 +86,51 @@
       "title": "Hugging Face — Qwen3.5-27B Claude distillation (original)",
       "url": "https://huggingface.co/mlx-community/Qwen3.5-27B-Claude-4.6-Opus-Distilled-MLX-4bit",
       "note": "Distilled 27B text model; 4bit MLX"
+    },
+    {
+      "title": "NVIDIA — DGX Spark specifications",
+      "url": "https://www.nvidia.com/en-us/products/workstations/dgx-spark/",
+      "note": "GB10 Grace Blackwell; 128GB coherent unified memory; 273GB/s; 4TB NVMe; ConnectX-7 200Gbps; up to 1 PFLOP FP4; up to 200B params on one box / 405B with two systems."
+    },
+    {
+      "title": "Hugging Face — moonshotai/Kimi-K2.6",
+      "url": "https://huggingface.co/moonshotai/Kimi-K2.6",
+      "note": "1T total / 32B activated MoE; agentic and long-horizon coding benchmarks."
+    },
+    {
+      "title": "Hugging Face — moonshotai/Kimi-K2.7-Code",
+      "url": "https://huggingface.co/moonshotai/Kimi-K2.7-Code",
+      "note": "1T total / 32B activated MoE; code-focused successor with Moonshot-published coding evals."
+    },
+    {
+      "title": "Hugging Face — moonshotai/Kimi-Linear-48B-A3B-Instruct",
+      "url": "https://huggingface.co/moonshotai/Kimi-Linear-48B-A3B-Instruct",
+      "note": "48B total / ~3B active efficient attention architecture; high-throughput decoding claims."
+    },
+    {
+      "title": "Hugging Face — Qwen/Qwen3.8-Flash-Next",
+      "url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next",
+      "note": "Official model card: 125B MoE with 6B activated, plus 51B n-gram embeddings and 4B MTP; native 262K context."
+    },
+    {
+      "title": "Hugging Face — deepseek-ai/DeepSeek-V4.1-Flash",
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash",
+      "note": "Official model card: 552B backbone; 8B active during prefill and 16B during decode; native multimodal input and 1M context."
+    },
+    {
+      "title": "Hugging Face — moonshotai/Kimi-K3",
+      "url": "https://huggingface.co/moonshotai/Kimi-K3",
+      "note": "Official model card: 2.8T total / 104B activated multimodal MoE with 1M context."
+    },
+    {
+      "title": "Hugging Face — zai-org/GLM-5.3-Flash",
+      "url": "https://huggingface.co/zai-org/GLM-5.3-Flash",
+      "note": "Official model card: 320B total / 18B active multimodal MoE; mlx-community 4-bit conversion is about 204GB before runtime headroom."
+    },
+    {
+      "title": "Hugging Face — zai-org/GLM-5.3",
+      "url": "https://huggingface.co/zai-org/GLM-5.3",
+      "note": "Official flagship model card; community MLX documentation reports 753B total / about 39B active and a 459GB 4-bit build."
     }
   ],
   "localModelProfiles": [
@@ -103,9 +149,17 @@
         "m5-10-10": 48,
         "m5pro-15-16": 67,
         "m5max-18-32": 100,
-        "m5max-18-40": 112
+        "m5max-18-40": 112,
+        "dgx-spark-gb10": 60,
+        "macmini-m6-12-12": 48,
+        "macmini-m5pro-15-16": 67,
+        "macmini-m5pro-18-20": 67,
+        "macstudio-m5max-18-32": 100,
+        "macstudio-m5max-18-40": 112,
+        "macstudio-m5ultra-30-64": 205,
+        "macstudio-m5ultra-36-80": 205
       },
-      "benchmarkNote": "14B dense model; fits in 16GB configs. Scaled from Phi-4 MLX benchmarks (~20 tok/s M1 Pro → ~56 tok/s M1 Ultra); M4-tier extrapolated by memory bandwidth ratio. M5-tier scaled from M4 using memory-bandwidth ratio (M5: 153/120 GB/s = ×1.275; M5 Pro: 307/273 = ×1.12; M5 Max 32c: 460/410 = ×1.12; M5 Max 40c: 614/546 = ×1.12).",
+      "benchmarkNote": "14B dense model; fits in 16GB configs. Scaled from Phi-4 MLX benchmarks (~20 tok/s M1 Pro → ~56 tok/s M1 Ultra); M4-tier extrapolated by memory bandwidth ratio. M5-tier scaled from M4 using memory-bandwidth ratio (M5: 153/120 GB/s = ×1.275; M5 Pro: 307/273 = ×1.12; M5 Max 32c: 460/410 = ×1.12; M5 Max 40c: 614/546 = ×1.12). DGX Spark tok/s is a conservative estimate from its 273GB/s unified-memory bandwidth and NVIDIA local-inference stack; verify with TensorRT-LLM/llama.cpp on the actual quant.",
       "usefulness": {
         "arena": 7,
         "coding": 8,
@@ -129,9 +183,17 @@
         "m5-10-10": 19,
         "m5pro-15-16": 37,
         "m5max-18-32": 55,
-        "m5max-18-40": 62
+        "m5max-18-40": 62,
+        "dgx-spark-gb10": 33,
+        "macmini-m6-12-12": 19,
+        "macmini-m5pro-15-16": 37,
+        "macmini-m5pro-18-20": 37,
+        "macstudio-m5max-18-32": 55,
+        "macstudio-m5max-18-40": 62,
+        "macstudio-m5ultra-30-64": 116,
+        "macstudio-m5ultra-36-80": 116
       },
-      "benchmarkNote": "M3 Ultra: 33 tok/s (LM Studio MLX, published benchmark). M4 Max extrapolated from bandwidth; M4 Pro 24GB is tight — needs ≥24GB config. M5 base scaled from M4 Pro 12c by bandwidth ratio (153/273); M5 Pro/Max scaled from M4 equivalents.",
+      "benchmarkNote": "M3 Ultra: 33 tok/s (LM Studio MLX, published benchmark). M4 Max extrapolated from bandwidth; M4 Pro 24GB is tight — needs ≥24GB config. M5 base scaled from M4 Pro 12c by bandwidth ratio (153/273); M5 Pro/Max scaled from M4 equivalents. DGX Spark tok/s is a conservative estimate from its 273GB/s unified-memory bandwidth and NVIDIA local-inference stack; verify with TensorRT-LLM/llama.cpp on the actual quant.",
       "usefulness": {
         "arena": 7,
         "coding": 7,
@@ -155,9 +217,17 @@
         "m5-10-10": 40,
         "m5pro-15-16": 81,
         "m5max-18-32": 115,
-        "m5max-18-40": 124
+        "m5max-18-40": 124,
+        "dgx-spark-gb10": 72,
+        "macmini-m6-12-12": 40,
+        "macmini-m5pro-15-16": 81,
+        "macmini-m5pro-18-20": 81,
+        "macstudio-m5max-18-32": 115,
+        "macstudio-m5max-18-40": 124,
+        "macstudio-m5ultra-30-64": 227,
+        "macstudio-m5ultra-36-80": 227
       },
-      "benchmarkNote": "MoE: only 3.3B params active per token. M4 Max ~70-100 tok/s (HN community report); M4 Pro 16c ~89 tok/s TG (oMLX benchmark). Very fast due to sparse activation. M5 base scaled from M4 Pro 12c by bandwidth ratio; M5 Pro/Max scaled from M4 equivalents.",
+      "benchmarkNote": "MoE: only 3.3B params active per token. M4 Max ~70-100 tok/s (HN community report); M4 Pro 16c ~89 tok/s TG (oMLX benchmark). Very fast due to sparse activation. M5 base scaled from M4 Pro 12c by bandwidth ratio; M5 Pro/Max scaled from M4 equivalents. DGX Spark tok/s is a conservative estimate from its 273GB/s unified-memory bandwidth and NVIDIA local-inference stack; verify with TensorRT-LLM/llama.cpp on the actual quant.",
       "usefulness": {
         "arena": 8,
         "coding": 8,
@@ -181,9 +251,17 @@
         "m5-10-10": 19,
         "m5pro-15-16": 37,
         "m5max-18-32": 55,
-        "m5max-18-40": 62
+        "m5max-18-40": 62,
+        "dgx-spark-gb10": 33,
+        "macmini-m6-12-12": 19,
+        "macmini-m5pro-15-16": 37,
+        "macmini-m5pro-18-20": 37,
+        "macstudio-m5max-18-32": 55,
+        "macstudio-m5max-18-40": 62,
+        "macstudio-m5ultra-30-64": 116,
+        "macstudio-m5ultra-36-80": 116
       },
-      "benchmarkNote": "Hugging Face `mlx-community/Qwen3.5-27B-Claude-4.6-Opus-Distilled-MLX-4bit`. Throughput profile aligned to Gemma 3 27B class (same ~17GB 4bit band as this site’s Gemma 3 row) — not an independent lab benchmark run.",
+      "benchmarkNote": "Hugging Face `mlx-community/Qwen3.5-27B-Claude-4.6-Opus-Distilled-MLX-4bit`. Throughput profile aligned to Gemma 3 27B class (same ~17GB 4bit band as this site’s Gemma 3 row) — not an independent lab benchmark run. DGX Spark tok/s is a conservative estimate from its 273GB/s unified-memory bandwidth and NVIDIA local-inference stack; verify with TensorRT-LLM/llama.cpp on the actual quant.",
       "usefulness": {
         "arena": 7,
         "coding": 8,
@@ -207,9 +285,17 @@
         "m5-10-10": 20,
         "m5pro-15-16": 38,
         "m5max-18-32": 57,
-        "m5max-18-40": 64
+        "m5max-18-40": 64,
+        "dgx-spark-gb10": 35,
+        "macmini-m6-12-12": 20,
+        "macmini-m5pro-15-16": 38,
+        "macmini-m5pro-18-20": 38,
+        "macstudio-m5max-18-32": 57,
+        "macstudio-m5max-18-40": 64,
+        "macstudio-m5ultra-30-64": 119,
+        "macstudio-m5ultra-36-80": 119
       },
-      "benchmarkNote": "Hugging Face `Jiunsong/supergemma4-26b-uncensored-mlx-4bit-v2`. 26B ≈1GB lighter than 27B in RAM gate; tok/s nudged vs Gemma 3 27B — illustrative.",
+      "benchmarkNote": "Hugging Face `Jiunsong/supergemma4-26b-uncensored-mlx-4bit-v2`. 26B ≈1GB lighter than 27B in RAM gate; tok/s nudged vs Gemma 3 27B — illustrative. DGX Spark tok/s is a conservative estimate from its 273GB/s unified-memory bandwidth and NVIDIA local-inference stack; verify with TensorRT-LLM/llama.cpp on the actual quant.",
       "usefulness": {
         "arena": 7,
         "coding": 7,
@@ -233,9 +319,17 @@
         "m5-10-10": 26,
         "m5pro-15-16": 50,
         "m5max-18-32": 78,
-        "m5max-18-40": 86
+        "m5max-18-40": 86,
+        "dgx-spark-gb10": 50,
+        "macmini-m6-12-12": 26,
+        "macmini-m5pro-15-16": 50,
+        "macmini-m5pro-18-20": 50,
+        "macstudio-m5max-18-32": 78,
+        "macstudio-m5max-18-40": 86,
+        "macstudio-m5ultra-30-64": 164,
+        "macstudio-m5ultra-36-80": 164
       },
-      "benchmarkNote": "Hugging Face `mlx-community/Qwen3.5-9B-MLX-4bit` (multimodal repo; text tok/s here ignores vision tower overhead). Slightly higher tok/s than Qwen 2.5 14B in this model’s weight class on Apple Silicon in practice — scaled from 14B row.",
+      "benchmarkNote": "Hugging Face `mlx-community/Qwen3.5-9B-MLX-4bit` (multimodal repo; text tok/s here ignores vision tower overhead). Slightly higher tok/s than Qwen 2.5 14B in this model’s weight class on Apple Silicon in practice — scaled from 14B row. DGX Spark tok/s is a conservative estimate from its 273GB/s unified-memory bandwidth and NVIDIA local-inference stack; verify with TensorRT-LLM/llama.cpp on the actual quant.",
       "usefulness": {
         "arena": 6,
         "coding": 6,
@@ -259,9 +353,17 @@
         "m5-10-10": 35,
         "m5pro-15-16": 71,
         "m5max-18-32": 101,
-        "m5max-18-40": 110
+        "m5max-18-40": 110,
+        "dgx-spark-gb10": 64,
+        "macmini-m6-12-12": 35,
+        "macmini-m5pro-15-16": 71,
+        "macmini-m5pro-18-20": 71,
+        "macstudio-m5max-18-32": 101,
+        "macstudio-m5max-18-40": 110,
+        "macstudio-m5ultra-30-64": 199,
+        "macstudio-m5ultra-36-80": 199
       },
-      "benchmarkNote": "Hugging Face `mlx-community/GLM-4.7-Flash-4bit` — HF lists ~16.9GB. MoE-lite Z.ai Flash; tok/s nudged below Qwen3 30B-A3B row (smaller on-disk but similar tier).",
+      "benchmarkNote": "Hugging Face `mlx-community/GLM-4.7-Flash-4bit` — HF lists ~16.9GB. MoE-lite Z.ai Flash; tok/s nudged below Qwen3 30B-A3B row (smaller on-disk but similar tier). DGX Spark tok/s is a conservative estimate from its 273GB/s unified-memory bandwidth and NVIDIA local-inference stack; verify with TensorRT-LLM/llama.cpp on the actual quant.",
       "usefulness": {
         "arena": 7,
         "coding": 7,
@@ -285,9 +387,17 @@
         "m5-10-10": 12,
         "m5pro-15-16": 22,
         "m5max-18-32": 48,
-        "m5max-18-40": 51
+        "m5max-18-40": 51,
+        "dgx-spark-gb10": 25,
+        "macmini-m6-12-12": 12,
+        "macmini-m5pro-15-16": 22,
+        "macmini-m5pro-18-20": 22,
+        "macstudio-m5max-18-32": 48,
+        "macstudio-m5max-18-40": 51,
+        "macstudio-m5ultra-30-64": 98,
+        "macstudio-m5ultra-36-80": 98
       },
-      "benchmarkNote": "Hugging Face `mlx-community/gpt-oss-20b-MXFP4-Q8` (repo name; ~12.1GB MLX file, 21B params). MXFP4 is not a separate Q4/Q8 row here — single profile. Scaled from 32B-class DeepSeek R1 row toward faster 20B — validate with mlx_lm on your box.",
+      "benchmarkNote": "Hugging Face `mlx-community/gpt-oss-20b-MXFP4-Q8` (repo name; ~12.1GB MLX file, 21B params). MXFP4 is not a separate Q4/Q8 row here — single profile. Scaled from 32B-class DeepSeek R1 row toward faster 20B — validate with mlx_lm on your box. DGX Spark tok/s is a conservative estimate from its 273GB/s unified-memory bandwidth and NVIDIA local-inference stack; verify with TensorRT-LLM/llama.cpp on the actual quant.",
       "usefulness": {
         "arena": 8,
         "coding": 8,
@@ -311,9 +421,17 @@
         "m5-10-10": 54,
         "m5pro-15-16": 75,
         "m5max-18-32": 110,
-        "m5max-18-40": 124
+        "m5max-18-40": 124,
+        "dgx-spark-gb10": 67,
+        "macmini-m6-12-12": 54,
+        "macmini-m5pro-15-16": 75,
+        "macmini-m5pro-18-20": 75,
+        "macstudio-m5max-18-32": 110,
+        "macstudio-m5max-18-40": 124,
+        "macstudio-m5ultra-30-64": 223,
+        "macstudio-m5ultra-36-80": 223
       },
-      "benchmarkNote": "M4 Max ~90–100 tok/s (InsiderLLM MLX Q4). M3 Ultra scaled ~×1.47 vs Max by memory bandwidth. M5 tiers scaled from M4 equivalents by memory bandwidth ratio.",
+      "benchmarkNote": "M4 Max ~90–100 tok/s (InsiderLLM MLX Q4). M3 Ultra scaled ~×1.47 vs Max by memory bandwidth. M5 tiers scaled from M4 equivalents by memory bandwidth ratio. DGX Spark tok/s is a conservative estimate from its 273GB/s unified-memory bandwidth and NVIDIA local-inference stack; verify with TensorRT-LLM/llama.cpp on the actual quant.",
       "usefulness": {
         "arena": 5,
         "coding": 4,
@@ -337,9 +455,17 @@
         "m5-10-10": 32,
         "m5pro-15-16": 45,
         "m5max-18-32": 69,
-        "m5max-18-40": 76
+        "m5max-18-40": 76,
+        "dgx-spark-gb10": 40,
+        "macmini-m6-12-12": 32,
+        "macmini-m5pro-15-16": 45,
+        "macmini-m5pro-18-20": 45,
+        "macstudio-m5max-18-32": 69,
+        "macstudio-m5max-18-40": 76,
+        "macstudio-m5ultra-30-64": 141,
+        "macstudio-m5ultra-36-80": 141
       },
-      "benchmarkNote": "Studio M4 Max ~55–65 tok/s for Qwen3 14B class (InsiderLLM); profile uses same ballpark for Qwen 2.5 14B. M5 tiers scaled from M4 equivalents by memory bandwidth ratio.",
+      "benchmarkNote": "Studio M4 Max ~55–65 tok/s for Qwen3 14B class (InsiderLLM); profile uses same ballpark for Qwen 2.5 14B. M5 tiers scaled from M4 equivalents by memory bandwidth ratio. DGX Spark tok/s is a conservative estimate from its 273GB/s unified-memory bandwidth and NVIDIA local-inference stack; verify with TensorRT-LLM/llama.cpp on the actual quant.",
       "usefulness": {
         "arena": 6,
         "coding": 6,
@@ -363,9 +489,17 @@
         "m5-10-10": 10,
         "m5pro-15-16": 18,
         "m5max-18-32": 40,
-        "m5max-18-40": 43
+        "m5max-18-40": 43,
+        "dgx-spark-gb10": 16,
+        "macmini-m6-12-12": 10,
+        "macmini-m5pro-15-16": 18,
+        "macmini-m5pro-18-20": 18,
+        "macstudio-m5max-18-32": 40,
+        "macstudio-m5max-18-40": 43,
+        "macstudio-m5ultra-30-64": 82,
+        "macstudio-m5ultra-36-80": 82
       },
-      "benchmarkNote": "Studio M4 Max ~30–40 tok/s for Qwen3 32B (InsiderLLM); used as proxy for 32B-class models. M5 tiers scaled from M4 equivalents by memory bandwidth ratio.",
+      "benchmarkNote": "Studio M4 Max ~30–40 tok/s for Qwen3 32B (InsiderLLM); used as proxy for 32B-class models. M5 tiers scaled from M4 equivalents by memory bandwidth ratio. DGX Spark tok/s is a conservative estimate from its 273GB/s unified-memory bandwidth and NVIDIA local-inference stack; verify with TensorRT-LLM/llama.cpp on the actual quant.",
       "usefulness": {
         "arena": 7,
         "coding": 7,
@@ -389,9 +523,17 @@
         "m5-10-10": 0,
         "m5pro-15-16": 6,
         "m5max-18-32": 18,
-        "m5max-18-40": 19
+        "m5max-18-40": 19,
+        "dgx-spark-gb10": 7,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 6,
+        "macmini-m5pro-18-20": 6,
+        "macstudio-m5max-18-32": 18,
+        "macstudio-m5max-18-40": 19,
+        "macstudio-m5ultra-30-64": 42,
+        "macstudio-m5ultra-36-80": 42
       },
-      "benchmarkNote": "Studio M4 Max ~15–18 tok/s; M3 Ultra ~25–30 tok/s for Llama 3.3 70B (InsiderLLM MLX Q4). M5 Pro needs 64GB config; M5 Max 32c up to 64GB (fine); M5 Max 40c up to 128GB.",
+      "benchmarkNote": "Studio M4 Max ~15–18 tok/s; M3 Ultra ~25–30 tok/s for Llama 3.3 70B (InsiderLLM MLX Q4). M5 Pro needs 64GB config; M5 Max 32c up to 64GB (fine); M5 Max 40c up to 128GB. DGX Spark tok/s is a conservative estimate from its 273GB/s unified-memory bandwidth and NVIDIA local-inference stack; verify with TensorRT-LLM/llama.cpp on the actual quant.",
       "usefulness": {
         "arena": 7,
         "coding": 7,
@@ -415,7 +557,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 3
+        "m5max-18-40": 3,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 3,
+        "macstudio-m5ultra-30-64": 9,
+        "macstudio-m5ultra-36-80": 9
       },
       "benchmarkNote": "Large dense model; needs ~122GB unified RAM for Q4. Only M5 Max 40c (128GB config) can load this — tight headroom. Tok/s are order-of-magnitude (bandwidth-bound); clusters often used in practice.",
       "usefulness": {
@@ -441,7 +591,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 0
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 1,
+        "macstudio-m5ultra-36-80": 1
       },
       "benchmarkNote": "~200GB+ weights in Q4; realistically 256GB unified (M3 Ultra BTO). No single MacBook Pro config can host this. Throughput is illustrative — often run sharded across machines (e.g. exo).",
       "usefulness": {
@@ -467,7 +625,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 0
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 3,
+        "macstudio-m5ultra-36-80": 3
       },
       "benchmarkNote": "671B total MoE; only part of weights active per token. Published cluster runs (e.g. 8× Mac minis) are aggregate tok/s — single-Studio numbers are rough guesses. No MacBook Pro config can host this model.",
       "usefulness": {
@@ -493,7 +659,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 0
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 23,
+        "macstudio-m5ultra-36-80": 23
       },
       "benchmarkNote": "GLM-5 is a 744B total / 40B active MoE. MLX 4-bit card lists ~419GB footprint; community single-node M3 Ultra 512GB runs report ~15.4 tok/s. Treat as 512GB-class only on Apple Silicon.",
       "usefulness": {
@@ -519,7 +693,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 0
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 10,
+        "macstudio-m5ultra-36-80": 10
       },
       "benchmarkNote": "Unsloth / community Q4_GGUF (e.g. Q4_K_M) is ~580–600GB on disk — a Mac Studio M4 Max 128GB cannot load this checkpoint. Native INT4 (QAT) is still data-center class in practice. M3 Ultra numbers are order-of-magnitude per-node in a 4× Mac Studio (M3 Ultra) exo/MLX cluster reporting ~25–28 tok/s aggregate (e.g. Virge, Jeff Geerling, Creative Strategies — not a lab single-node M4 Max bench). Simplismart’s ~173 tok/s is 8× NVIDIA B200, not Apple Silicon. For smaller Unsloth quants (e.g. UD-TQ1_0 ≈230GB) Unsloth cites ~1–2 tok/s with 256GB RAM and heavy offload, or 5+ tok/s with ≥247GB combined — not modeled on this Q4 row.",
       "usefulness": {
@@ -545,9 +727,17 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 11
+        "m5max-18-40": 11,
+        "dgx-spark-gb10": 9,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 11,
+        "macstudio-m5ultra-30-64": 29,
+        "macstudio-m5ultra-36-80": 29
       },
-      "benchmarkNote": "109B total MoE, 17B active per token. Requires ~61GB Q4 — needs M4/M5 Max 128GB config (61+6GB OS overhead exceeds 64GB). Throughput estimated from 17B active-param bandwidth; 10M token context is impractical locally.",
+      "benchmarkNote": "109B total MoE, 17B active per token. Requires ~61GB Q4 — needs M4/M5 Max 128GB config (61+6GB OS overhead exceeds 64GB). Throughput estimated from 17B active-param bandwidth; 10M token context is impractical locally. DGX Spark tok/s is a conservative estimate from its 273GB/s unified-memory bandwidth and NVIDIA local-inference stack; verify with TensorRT-LLM/llama.cpp on the actual quant.",
       "usefulness": {
         "arena": 8,
         "coding": 7,
@@ -571,7 +761,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 0
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 21,
+        "macstudio-m5ultra-36-80": 21
       },
       "benchmarkNote": "1T total MoE, 32B active. Q4 checkpoint ~620GB. Community reports show ~23–24 tok/s on 2× M3 Ultra 512GB via Exo/RDMA; per-node figures here are set to match that cluster band under the N^β speedup curve. Treat as community-derived, not standardized lab benchmark.",
       "usefulness": {
@@ -597,7 +795,15 @@
         "m5-10-10": 24,
         "m5pro-15-16": 34,
         "m5max-18-32": 50,
-        "m5max-18-40": 56
+        "m5max-18-40": 56,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 24,
+        "macmini-m5pro-15-16": 34,
+        "macmini-m5pro-18-20": 34,
+        "macstudio-m5max-18-32": 50,
+        "macstudio-m5max-18-40": 56,
+        "macstudio-m5ultra-30-64": 103,
+        "macstudio-m5ultra-36-80": 103
       },
       "benchmarkNote": "Q8 row derived from Q4 throughput using memory-bandwidth scaling (~0.5× Q4 tok/s for dense models). Near-lossless quality, lower throughput.",
       "usefulness": {
@@ -623,7 +829,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 19,
         "m5max-18-32": 28,
-        "m5max-18-40": 31
+        "m5max-18-40": 31,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 19,
+        "macmini-m5pro-18-20": 19,
+        "macstudio-m5max-18-32": 28,
+        "macstudio-m5max-18-40": 31,
+        "macstudio-m5ultra-30-64": 59,
+        "macstudio-m5ultra-36-80": 59
       },
       "benchmarkNote": "Q8 row derived from Q4 throughput using memory-bandwidth scaling (~0.5× Q4 tok/s). 34GB req exceeds M5 base max (32GB); needs M5 Pro 48GB config.",
       "usefulness": {
@@ -649,7 +863,15 @@
         "m5-10-10": 20,
         "m5pro-15-16": 41,
         "m5max-18-32": 58,
-        "m5max-18-40": 62
+        "m5max-18-40": 62,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 20,
+        "macmini-m5pro-15-16": 41,
+        "macmini-m5pro-18-20": 41,
+        "macstudio-m5max-18-32": 58,
+        "macstudio-m5max-18-40": 62,
+        "macstudio-m5ultra-30-64": 114,
+        "macstudio-m5ultra-36-80": 114
       },
       "benchmarkNote": "Q8 row derived from Q4 throughput using ~0.5× scaling; MoE remains relatively fast at Q8.",
       "usefulness": {
@@ -675,7 +897,15 @@
         "m5-10-10": 27,
         "m5pro-15-16": 38,
         "m5max-18-32": 55,
-        "m5max-18-40": 62
+        "m5max-18-40": 62,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 27,
+        "macmini-m5pro-15-16": 38,
+        "macmini-m5pro-18-20": 38,
+        "macstudio-m5max-18-32": 55,
+        "macstudio-m5max-18-40": 62,
+        "macstudio-m5ultra-30-64": 111,
+        "macstudio-m5ultra-36-80": 111
       },
       "benchmarkNote": "Q8 informed by published Apple Silicon results (M4 base ~11 tok/s, M4 Max ~42–55 tok/s) plus bandwidth scaling for remaining tiers.",
       "usefulness": {
@@ -701,7 +931,15 @@
         "m5-10-10": 16,
         "m5pro-15-16": 23,
         "m5max-18-32": 35,
-        "m5max-18-40": 38
+        "m5max-18-40": 38,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 16,
+        "macmini-m5pro-15-16": 23,
+        "macmini-m5pro-18-20": 23,
+        "macstudio-m5max-18-32": 35,
+        "macstudio-m5max-18-40": 38,
+        "macstudio-m5ultra-30-64": 70,
+        "macstudio-m5ultra-36-80": 70
       },
       "benchmarkNote": "Q8 anchored on published 14B Q8 samples (M4 Max ~29 tok/s) and scaled by memory bandwidth for other tiers.",
       "usefulness": {
@@ -727,7 +965,15 @@
         "m5-10-10": 5,
         "m5pro-15-16": 9,
         "m5max-18-32": 20,
-        "m5max-18-40": 22
+        "m5max-18-40": 22,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 5,
+        "macmini-m5pro-15-16": 9,
+        "macmini-m5pro-18-20": 9,
+        "macstudio-m5max-18-32": 20,
+        "macstudio-m5max-18-40": 22,
+        "macstudio-m5ultra-30-64": 41,
+        "macstudio-m5ultra-36-80": 41
       },
       "benchmarkNote": "Q8 row derived from Q4 throughput (~0.5×). Q8 32B is practical only on high-memory tiers.",
       "usefulness": {
@@ -753,7 +999,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 3,
         "m5max-18-32": 9,
-        "m5max-18-40": 10
+        "m5max-18-40": 10,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 3,
+        "macmini-m5pro-18-20": 3,
+        "macstudio-m5max-18-32": 9,
+        "macstudio-m5max-18-40": 10,
+        "macstudio-m5ultra-30-64": 22,
+        "macstudio-m5ultra-36-80": 22
       },
       "benchmarkNote": "Q8 row derived from Q4 throughput (~0.5×) with M4 Max benchmark anchors around ~9 tok/s.",
       "usefulness": {
@@ -779,7 +1033,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 2
+        "m5max-18-40": 2,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 2,
+        "macstudio-m5ultra-30-64": 4,
+        "macstudio-m5ultra-36-80": 4
       },
       "benchmarkNote": "Q8 row derived from Q4 throughput. Effective single-machine fit is extremely limited due to RAM requirements.",
       "usefulness": {
@@ -805,7 +1067,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 0
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 1,
+        "macstudio-m5ultra-36-80": 1
       },
       "benchmarkNote": "Q8 row derived from Q4 throughput. Single-machine Apple configs cannot host this profile in practice.",
       "usefulness": {
@@ -831,7 +1101,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 0
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 1,
+        "macstudio-m5ultra-36-80": 1
       },
       "benchmarkNote": "Q8 row derived from Q4 throughput. High total weight footprint generally implies cluster usage.",
       "usefulness": {
@@ -857,7 +1135,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 0
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 23,
+        "macstudio-m5ultra-36-80": 23
       },
       "benchmarkNote": "Custom MLX mixed-precision quant: experts in MXFP4, attention/embeddings/shared components in 8-bit. Model card lists ~405GB footprint. Public Apple Silicon tok/s data is sparse, so throughput is kept in the same conservative 15-16 tok/s M3 Ultra band as the 4-bit MLX runs.",
       "usefulness": {
@@ -883,7 +1169,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 0
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 6,
+        "macstudio-m5ultra-36-80": 6
       },
       "benchmarkNote": "Q8 row: memory scaled ~2× Q4 (≈1.1TB-class); tok/s ≈ half the Q4 per-node cluster placeholders. Not a measured MLX row — no single-Mac config holds this footprint.",
       "usefulness": {
@@ -909,7 +1203,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 6
+        "m5max-18-40": 6,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 6,
+        "macstudio-m5ultra-30-64": 15,
+        "macstudio-m5ultra-36-80": 15
       },
       "benchmarkNote": "Q8 row derived from Q4 throughput with memory-bandwidth scaling.",
       "usefulness": {
@@ -935,7 +1237,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 0
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 10,
+        "macstudio-m5ultra-36-80": 10
       },
       "benchmarkNote": "Q8 row derived from Q4 community throughput (~0.5×). Requires multi-node 512GB-class clusters in practice.",
       "usefulness": {
@@ -961,7 +1271,15 @@
         "m5-10-10": 14,
         "m5pro-15-16": 19,
         "m5max-18-32": 28,
-        "m5max-18-40": 31
+        "m5max-18-40": 31,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 14,
+        "macmini-m5pro-15-16": 19,
+        "macmini-m5pro-18-20": 19,
+        "macstudio-m5max-18-32": 28,
+        "macstudio-m5max-18-40": 31,
+        "macstudio-m5ultra-30-64": 56,
+        "macstudio-m5ultra-36-80": 56
       },
       "benchmarkNote": "F16 row uses memory-bandwidth scaling (~0.25× Q4 tok/s), aligned with published M4 Max F16 samples (~25 tok/s).",
       "usefulness": {
@@ -987,7 +1305,15 @@
         "m5-10-10": 8,
         "m5pro-15-16": 11,
         "m5max-18-32": 17,
-        "m5max-18-40": 19
+        "m5max-18-40": 19,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 8,
+        "macmini-m5pro-15-16": 11,
+        "macmini-m5pro-18-20": 11,
+        "macstudio-m5max-18-32": 17,
+        "macstudio-m5max-18-40": 19,
+        "macstudio-m5ultra-30-64": 35,
+        "macstudio-m5ultra-36-80": 35
       },
       "benchmarkNote": "F16 row derived from Q4 throughput (~0.25×) for dense-model bandwidth behavior.",
       "usefulness": {
@@ -1013,7 +1339,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 16
+        "m5max-18-40": 16,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 16,
+        "macstudio-m5ultra-30-64": 29,
+        "macstudio-m5ultra-36-80": 29
       },
       "benchmarkNote": "F16 row derived from Q4 throughput (~0.25×), with high RAM requirement (68GB) gating practical configs. Only M5 Max 40c (128GB) can host this.",
       "usefulness": {
@@ -1039,7 +1373,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 20,
         "m5max-18-32": 29,
-        "m5max-18-40": 31
+        "m5max-18-40": 31,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 20,
+        "macmini-m5pro-18-20": 20,
+        "macstudio-m5max-18-32": 29,
+        "macstudio-m5max-18-40": 31,
+        "macstudio-m5ultra-30-64": 57,
+        "macstudio-m5ultra-36-80": 57
       },
       "benchmarkNote": "F16 row derived from Q4 throughput (~0.25×). MoE still helps relative to similarly sized dense models. 48GB req — M5 Pro needs 48GB config (tight); M5 Max 32c/40c fine.",
       "usefulness": {
@@ -1065,7 +1407,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 11
+        "m5max-18-40": 11,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 11,
+        "macstudio-m5ultra-30-64": 21,
+        "macstudio-m5ultra-36-80": 21
       },
       "benchmarkNote": "F16 row derived from Q4 throughput (~0.25×). 96GB req exceeds M5 Pro/Max 32c max (64GB); M5 Max 40c (128GB) handles it.",
       "usefulness": {
@@ -1091,7 +1441,15 @@
         "m5-10-10": 0,
         "m5pro-15-16": 0,
         "m5max-18-32": 0,
-        "m5max-18-40": 0
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 10,
+        "macstudio-m5ultra-36-80": 10
       },
       "benchmarkNote": "F16 row derived from Q4 throughput (~0.25×). 192GB req far exceeds any MacBook Pro config; feasible only on 256GB-class Ultra configurations.",
       "usefulness": {
@@ -1101,6 +1459,279 @@
         "composite": 7.0,
         "note": "F16 — best-fidelity 70B local profile; limited to very high-memory hardware."
       }
+    },
+    {
+      "key": "kimi-k26-q4",
+      "label": "Kimi K2.6 · Q4 (MoE)",
+      "memoryRequiredGb": 620,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 0,
+        "m3ultra-28-60": 12,
+        "m3ultra-32-80": 14,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 21,
+        "macstudio-m5ultra-36-80": 21
+      },
+      "benchmarkNote": "Moonshot HF card lists 1T total / 32B active MoE. Q4 RAM gate aligned to existing Kimi K2.5 row; practical Apple use is cluster-only. Kimi K3 is now represented separately at its much larger verified 2.8T / 104B-active footprint.",
+      "usefulness": {
+        "arena": 9,
+        "coding": 10,
+        "reasoning": 9,
+        "composite": 9.3,
+        "note": "Moonshot Kimi K2.6: long-horizon coding/agentic successor to K2.5; strong published comparisons against GPT-5.4/Opus 4.6 class models."
+      }
+    },
+    {
+      "key": "kimi-k27-code-q4",
+      "label": "Kimi K2.7 Code · Q4 (MoE)",
+      "memoryRequiredGb": 620,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 0,
+        "m3ultra-28-60": 12,
+        "m3ultra-32-80": 14,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 21,
+        "macstudio-m5ultra-36-80": 21
+      },
+      "benchmarkNote": "Moonshot HF card lists 1T total / 32B active MoE with code-focused evaluations. Q4 RAM gate aligned to Kimi K2.5/K2.6; practical Apple use is cluster-only.",
+      "usefulness": {
+        "arena": 9,
+        "coding": 10,
+        "reasoning": 9,
+        "composite": 9.5,
+        "note": "Code-specialised Kimi K2.7 profile; retained as a smaller cluster target alongside the newer, much larger Kimi K3."
+      }
+    },
+    {
+      "key": "kimi-linear-48b-a3b-q4",
+      "label": "Kimi Linear 48B-A3B · Q4",
+      "memoryRequiredGb": 24,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 55,
+        "m4pro-14-20": 65,
+        "m4max-14-32": 82,
+        "m4max-16-40": 92,
+        "m3ultra-28-60": 118,
+        "m3ultra-32-80": 130,
+        "m5-10-10": 30,
+        "m5pro-15-16": 62,
+        "m5max-18-32": 95,
+        "m5max-18-40": 104,
+        "dgx-spark-gb10": 55,
+        "macmini-m6-12-12": 30,
+        "macmini-m5pro-15-16": 62,
+        "macmini-m5pro-18-20": 62,
+        "macstudio-m5max-18-32": 95,
+        "macstudio-m5max-18-40": 104,
+        "macstudio-m5ultra-30-64": 190,
+        "macstudio-m5ultra-36-80": 190
+      },
+      "benchmarkNote": "Hugging Face model card describes an efficient linear-attention architecture with 48B total / ~3B active and up to 6× faster decoding claims. Tok/s here is heuristic, scaled near Qwen3-30B-A3B but RAM-gated higher; verify actual MLX/GGUF/TensorRT quant.",
+      "usefulness": {
+        "arena": 8,
+        "coding": 8,
+        "reasoning": 8,
+        "composite": 8.1,
+        "note": "Efficient Kimi-family text model; interesting speed/quality comparison against Qwen3 MoE on 24–48GB machines and DGX Spark."
+      }
+    },
+    {
+      "key": "qwen38-flash-next-q4",
+      "label": "Qwen3.8 Flash Next · Q4 (MoE)",
+      "memoryRequiredGb": 118,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 50,
+        "m4max-16-40": 58,
+        "m3ultra-28-60": 75,
+        "m3ultra-32-80": 82,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 56,
+        "m5max-18-40": 64,
+        "dgx-spark-gb10": 50,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 56,
+        "macstudio-m5max-18-40": 64,
+        "macstudio-m5ultra-30-64": 118,
+        "macstudio-m5ultra-36-80": 118
+      },
+      "benchmarkNote": "Official card lists 125B parameters with 6B activated, plus 51B n-gram embeddings and 4B MTP. The mlx-community 4-bit conversion is 111.5GB of weights; the 118GB gate reserves modest runtime headroom. Tok/s values are conservative architecture-class estimates, not measured Apple benchmarks.",
+      "usefulness": {
+        "arena": 9,
+        "coding": 9,
+        "reasoning": 9,
+        "composite": 9.3,
+        "note": "Fast multimodal Qwen release with native 262K context and sparse attention; scores remain provisional pending independent benchmark-operator runs."
+      }
+    },
+    {
+      "key": "deepseek-v41-flash-q4",
+      "label": "DeepSeek V4.1 Flash · Q4 (MoE)",
+      "memoryRequiredGb": 530,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 0,
+        "m3ultra-28-60": 16,
+        "m3ultra-32-80": 18,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 27,
+        "macstudio-m5ultra-36-80": 27
+      },
+      "benchmarkNote": "Official card lists a 552B backbone with 8B active during prefill and 16B during decode. The community Q4 GGUF totals about 518.6GB; the 530GB gate includes runtime headroom. Apple tok/s values are cluster-planning estimates, not measured MLX results.",
+      "usefulness": {
+        "arena": 9,
+        "coding": 10,
+        "reasoning": 9,
+        "composite": 9.5,
+        "note": "Multimodal 1M-context DeepSeek release aimed at efficient long-horizon agents; capability rating is based on the vendor card and remains provisional."
+      }
+    },
+    {
+      "key": "kimi-k3-q4",
+      "label": "Kimi K3 · Q4 (MoE)",
+      "memoryRequiredGb": 1520,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 0,
+        "m3ultra-28-60": 3,
+        "m3ultra-32-80": 4,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 6,
+        "macstudio-m5ultra-36-80": 6
+      },
+      "benchmarkNote": "Official card lists 2.8T total / 104B activated parameters and 1M context. Unsloth's UD-Q4_K_XL GGUF totals about 1,508.7GB; the 1,520GB gate leaves only modest overhead. This is an eight-node 256GB-class Apple cluster target, and tok/s values are unmeasured planning estimates.",
+      "usefulness": {
+        "arena": 10,
+        "coding": 10,
+        "reasoning": 10,
+        "composite": 9.7,
+        "note": "Moonshot's native multimodal frontier model; exceptionally demanding locally. Capability values reflect the vendor card and should be treated as provisional."
+      }
+    },
+    {
+      "key": "glm53-flash-q4",
+      "label": "GLM-5.3 Flash · Q4 (MoE)",
+      "memoryRequiredGb": 210,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 0,
+        "m3ultra-28-60": 25,
+        "m3ultra-32-80": 28,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 40,
+        "macstudio-m5ultra-36-80": 40
+      },
+      "benchmarkNote": "Official card lists 320B total / 18B active parameters. The mlx-community 4-bit conversion is about 204GB; the 210GB RAM gate includes runtime headroom. It fits a 256GB Ultra, but the displayed tok/s values are architecture-class estimates rather than measured Apple runs.",
+      "usefulness": {
+        "arena": 9,
+        "coding": 10,
+        "reasoning": 9,
+        "composite": 9.4,
+        "note": "The practical new GLM row for a single 256GB-class Mac: multimodal, 1M context, and much smaller than the flagship. Vendor-card capability rating is provisional."
+      }
+    },
+    {
+      "key": "glm53-q4",
+      "label": "GLM-5.3 · Q4 (MLX)",
+      "memoryRequiredGb": 480,
+      "throughput": {
+        "m4-10-10": 0,
+        "m4pro-12-16": 0,
+        "m4pro-14-20": 0,
+        "m4max-14-32": 0,
+        "m4max-16-40": 0,
+        "m3ultra-28-60": 15,
+        "m3ultra-32-80": 16,
+        "m5-10-10": 0,
+        "m5pro-15-16": 0,
+        "m5max-18-32": 0,
+        "m5max-18-40": 0,
+        "dgx-spark-gb10": 0,
+        "macmini-m6-12-12": 0,
+        "macmini-m5pro-15-16": 0,
+        "macmini-m5pro-18-20": 0,
+        "macstudio-m5max-18-32": 0,
+        "macstudio-m5max-18-40": 0,
+        "macstudio-m5ultra-30-64": 23,
+        "macstudio-m5ultra-36-80": 23
+      },
+      "benchmarkNote": "The official card and community MLX documentation describe a 753B-total / about 39B-active flagship. OrcaRouter's recommended mixed 4-bit build is 459GB and recommends about 480GB RAM. Tok/s stays in the prior GLM-5 planning band until measured Apple results are available.",
+      "usefulness": {
+        "arena": 10,
+        "coding": 10,
+        "reasoning": 10,
+        "composite": 9.6,
+        "note": "Z.ai's new open flagship for coding and agentic engineering; requires a 512GB-class machine or a multi-node cluster. Capability rating is provisional."
+      }
     }
-  ]
+  ],
+  "desktopRefreshNote": "M6/M5 desktop values are conservative bandwidth-scaled estimates, not launch-day measurements: M6 16GB uses the existing 153GB/s M5 baseline; both M5 Pro tiers use the existing 307GB/s M5 Pro baseline; M5 Max uses existing 460/614GB/s profiles; M5 Ultra scales the prior 819GB/s Ultra profile to Apple’s stated 1.2TB/s. Replace with measured MLX results when published."
 }
